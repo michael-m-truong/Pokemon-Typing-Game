@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
-import Keyboard from './Keyboard.vue'
+import Keyboard from './Keyboard.vue';
+import { Region } from '../models/Region'
 
 
 let pokemonName = ref('');
@@ -14,10 +15,30 @@ let nextPokemonName = ref('')
 let nextPokemonImageUrl = ref('')
 let nextMiniPokemon = ref('')
 
+//kanto 1-151   151 total
+//johto 152-251  101 total
+//hoenn 252-386   135 total
+//sinnoh 387-493   107 total
+
+const TOTAL_POKEMON = 493
+const TOTAL_KANTO_POKEMON = 151
+const TOTAL_JOHTO_POKEMON = 101
+const TOTAL_HOENN_POKEMON = 135
+const TOTAL_SINNOH_POKEMON = 107
+
+let allRegions: Region;
+let kantoRegion: Region;
+let johtoRegion: Region;
+let hoennRegion: Region;
+let sinnohRegion: Region;
+
+let currentRegion: Region;
 
 async function fetchData() {
   try {
-    const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    const randomPokemonId = currentRegion.getNextPokemon()
+    console.log(randomPokemonId)
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     pokemonName.value = response.data.name;
     pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
@@ -45,7 +66,8 @@ async function handleEvent() {
 
 async function loadNext() {
   try {
-    const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    const randomPokemonId = currentRegion.getNextPokemon()
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     nextPokemonName.value = response.data.name;
     nextPokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
@@ -57,6 +79,13 @@ async function loadNext() {
 }
 
 onMounted(() => {
+  allRegions = new Region(TOTAL_POKEMON);
+  kantoRegion = new Region(TOTAL_KANTO_POKEMON);
+  johtoRegion = new Region(TOTAL_JOHTO_POKEMON);
+  hoennRegion = new Region(TOTAL_HOENN_POKEMON);
+  sinnohRegion = new Region(TOTAL_SINNOH_POKEMON);
+  
+  currentRegion = kantoRegion
   fetchData();
 });
 
@@ -68,6 +97,7 @@ onMounted(() => {
     <div class="container">
       <div class="regions">
         <!-- <button @click="fetchData">Fetch Pokemon Name and Image</button> -->
+        <button>All Regions</button>
         <button>Kanto</button>
         <button>Johto</button>
         <button>Hoenn</button>
