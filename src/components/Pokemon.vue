@@ -76,7 +76,7 @@ onMounted(() => {
 
       <div class="centered-content">
         <div class="image-container">
-          <img :src="pokemonImageUrl" alt="Pokemon" v-if="pokemonImageUrl" style="height: 50vh; width: auto;"/>
+          <img :src="pokemonImageUrl" alt="Pokemon" v-if="pokemonImageUrl" style="height: 50vh; width: auto; max-width: 380px;"/>
           <h2>{{ pokemonName }}</h2>
           <Keyboard :onCustomEvent="handleEvent" :pokemonName="pokemonName"/>
         </div>
@@ -94,18 +94,20 @@ onMounted(() => {
   
   <style scoped>
 
-  /* * {
+  * {
     border: 1px solid red;
-  } */
+  }
 
   h2 {
     margin: 0;
     padding: 0;
+    width: 400px
   }
 
   .container {
     display: flex;
-    height: auto
+    height: auto;
+    /* margin: auto */
   }
   
   .regions, .settings {
@@ -113,11 +115,12 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 1em;
-    height:auto
+    height:auto;
   }
 
   .regions {
-    padding-top: 10px;
+    padding-top: 20px;
+    margin-left: 70px;
 
   }
   
@@ -128,6 +131,7 @@ onMounted(() => {
     /* flex-grow: 1;  */
     width: 100%; /* Occupy the full width of the container */
     height: 475.6px;
+    margin-left: 120px;
   }
   
   .image-container {
