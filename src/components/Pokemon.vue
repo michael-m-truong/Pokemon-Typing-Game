@@ -136,8 +136,8 @@ onMounted(() => {
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
-  gap: 8px;
-  /* max-width: 200px; */
+  /* gap: 8px; */
+  max-width: 305px;
   max-height: 50%;
   overflow-y: auto;
 
