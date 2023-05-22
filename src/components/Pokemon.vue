@@ -6,7 +6,9 @@ import Keyboard from './Keyboard.vue'
 
 let pokemonName = ref('');
 let pokemonImageUrl = ref('');
-let pokemonCaught = ref(0);
+let count = ref(0);
+let pokemonCaught = ref<string[]>([]);
+let currentMiniPokemon = ref('');
 
 async function fetchData() {
   try {
@@ -14,18 +16,21 @@ async function fetchData() {
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     pokemonName.value = response.data.name;
     pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
+    currentMiniPokemon.value = response.data.sprites.front_default;
   } catch (error) {
     console.error(error);
   }
 }
 
 async function handleEvent() {
-  pokemonCaught.value +=1
+  count.value +=1
   try {
     const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     pokemonName.value = response.data.name;
     pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
+    pokemonCaught.value.push(currentMiniPokemon.value)
+    currentMiniPokemon.value = response.data.sprites.front_default;
   } catch (error) {
     console.error(error);
   }
@@ -53,15 +58,18 @@ onMounted(() => {
         <div class="image-container">
           <img :src="pokemonImageUrl" alt="Pokemon" v-if="pokemonImageUrl" style="height: 50vh; width: auto;"/>
           <h2>{{ pokemonName }}</h2>
+          <Keyboard :onCustomEvent="handleEvent" :pokemonName="pokemonName"/>
         </div>
       </div>
 
       <div class="stats">
-        <h2>Pokemon Caught: {{pokemonCaught}}</h2>
+        <h2>Pokemon Caught: {{ pokemonCaught.length }}</h2>
+        <div class="image-list">
+          <img v-for="pokemon in pokemonCaught" :key="pokemon" :src="pokemon" alt="Caught Pokemon" class="caught-pokemon" style="height: 50px; width:autogd"/>
+        </div>
       </div>
 
     </div>
-    <Keyboard :onCustomEvent="handleEvent" :pokemonName="pokemonName"/>
   </template>
   
   <style scoped>
@@ -81,6 +89,7 @@ onMounted(() => {
     justify-content: center;
     align-items: center;
     flex-grow: 1; /* Allow the centered content to grow and fill the remaining space */
+    width: 100%; /* Occupy the full width of the container */
   }
   
   .image-container {
@@ -95,6 +104,20 @@ onMounted(() => {
     min-width: 10em;
     align-self: flex-start;
   }
+
+  .stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* .image-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+} */
+
   </style>
   
   

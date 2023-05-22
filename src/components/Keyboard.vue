@@ -54,7 +54,9 @@ watch(typedLetters, (newTypedLetters) => {
   console.log(newTypedLetters);
   if (newTypedLetters === tiles.value) {
     // Word is correctly typed, run the function
-    emitEvent();
+    setTimeout(() => {
+      emitEvent();
+    }, 200); // Adjust the delay as needed
   }
 });
 
@@ -62,6 +64,7 @@ function emitEvent(): void {
   props.onCustomEvent();
   typedLetters.value = ''; // Reinitialize typedLetters to an empty string
 }
+
 </script>
 
 <style scoped>
