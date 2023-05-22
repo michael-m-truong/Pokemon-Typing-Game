@@ -76,7 +76,7 @@ onMounted(() => {
 
       <div class="centered-content">
         <div class="image-container">
-          <img :src="pokemonImageUrl" alt="Pokemon" v-if="pokemonImageUrl" style="height: 50vh; width: auto; max-width: 380px;"/>
+          <img :src="pokemonImageUrl" alt="Pokemon" v-if="pokemonImageUrl" style="height: 50vh; width: auto; max-width: 380px; max-height: 373px;"/>
           <h2>{{ pokemonName }}</h2>
           <Keyboard :onCustomEvent="handleEvent" :pokemonName="pokemonName"/>
         </div>
@@ -94,9 +94,9 @@ onMounted(() => {
   
   <style scoped>
 
-  * {
+  /* * {
     border: 1px solid red;
-  }
+  } */
 
   h2 {
     margin: 0;
