@@ -93,8 +93,19 @@ onMounted(() => {
   </template>
   
   <style scoped>
+
+  /* * {
+    border: 1px solid red;
+  } */
+
+  h2 {
+    margin: 0;
+    padding: 0;
+  }
+
   .container {
     display: flex;
+    height: auto
   }
   
   .regions, .settings {
@@ -102,14 +113,21 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 1em;
+    height:auto
+  }
+
+  .regions {
+    padding-top: 10px;
+
   }
   
   .centered-content {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-grow: 1; /* Allow the centered content to grow and fill the remaining space */
+    /* flex-grow: 1;  */
     width: 100%; /* Occupy the full width of the container */
+    height: 475.6px;
   }
   
   .image-container {
@@ -138,7 +156,7 @@ onMounted(() => {
   align-items: center;
   /* gap: 8px; */
   max-width: 305px;
-  max-height: 50%;
+  max-height: 300px;
   overflow-y: auto;
 
 }
