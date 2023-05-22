@@ -10,6 +10,11 @@ let count = ref(0);
 let pokemonCaught = ref<string[]>([]);
 let currentMiniPokemon = ref('');
 
+let nextPokemonName = ref('')
+let nextPokemonImageUrl = ref('')
+let nextMiniPokemon = ref('')
+
+
 async function fetchData() {
   try {
     const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
@@ -17,6 +22,7 @@ async function fetchData() {
     pokemonName.value = response.data.name;
     pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
     currentMiniPokemon.value = response.data.sprites.front_default;
+    loadNext()
   } catch (error) {
     console.error(error);
   }
@@ -25,12 +31,26 @@ async function fetchData() {
 async function handleEvent() {
   count.value +=1
   try {
+    //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    //const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
+    pokemonName.value = nextPokemonName.value;
+    pokemonImageUrl.value = nextPokemonImageUrl.value;
+    pokemonCaught.value.push(currentMiniPokemon.value)
+    currentMiniPokemon.value = nextMiniPokemon.value
+    loadNext()
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function loadNext() {
+  try {
     const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
-    pokemonName.value = response.data.name;
-    pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
-    pokemonCaught.value.push(currentMiniPokemon.value)
-    currentMiniPokemon.value = response.data.sprites.front_default;
+    nextPokemonName.value = response.data.name;
+    nextPokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
+    nextMiniPokemon.value = response.data.sprites.front_default;
+    console.log("next")
   } catch (error) {
     console.error(error);
   }
