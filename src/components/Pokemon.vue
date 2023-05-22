@@ -131,13 +131,17 @@ onMounted(() => {
   align-items: center;
 }
 
-/* .image-list {
+.image-list {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   align-items: center;
   gap: 8px;
-} */
+  /* max-width: 200px; */
+  max-height: 50%;
+  overflow-y: auto;
 
+}
   </style>
   
   
