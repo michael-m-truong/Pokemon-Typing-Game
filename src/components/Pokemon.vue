@@ -76,7 +76,7 @@ onMounted(() => {
 
       <div class="centered-content">
         <div class="image-container">
-          <img :src="pokemonImageUrl" alt="Pokemon" v-if="pokemonImageUrl" style="height: 50vh; width: auto;"/>
+          <img :src="pokemonImageUrl" alt="Pokemon" v-if="pokemonImageUrl" style="height: 50vh; width: auto; max-width: 380px; max-height: 373px;"/>
           <h2>{{ pokemonName }}</h2>
           <Keyboard :onCustomEvent="handleEvent" :pokemonName="pokemonName"/>
         </div>
@@ -93,8 +93,21 @@ onMounted(() => {
   </template>
   
   <style scoped>
+
+  /* * {
+    border: 1px solid red;
+  } */
+
+  h2 {
+    margin: 0;
+    padding: 0;
+    width: 400px
+  }
+
   .container {
     display: flex;
+    height: auto;
+    /* margin: auto */
   }
   
   .regions, .settings {
@@ -102,14 +115,23 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 1em;
+    height:auto;
+  }
+
+  .regions {
+    padding-top: 20px;
+    margin-left: 70px;
+
   }
   
   .centered-content {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-grow: 1; /* Allow the centered content to grow and fill the remaining space */
+    /* flex-grow: 1;  */
     width: 100%; /* Occupy the full width of the container */
+    height: 475.6px;
+    margin-left: 120px;
   }
   
   .image-container {
@@ -138,7 +160,7 @@ onMounted(() => {
   align-items: center;
   /* gap: 8px; */
   max-width: 305px;
-  max-height: 50%;
+  max-height: 300px;
   overflow-y: auto;
 
 }
