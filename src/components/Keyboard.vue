@@ -42,7 +42,7 @@ function getTileContent(tile: string, index: number): string {
 }
 
 window.addEventListener('keydown', (event) => {
-  if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+  if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && typedLetters.value.length !== tiles.value.length) {
     typedLetters.value += event.key;
   } else if (event.key === 'Backspace') {
     typedLetters.value = typedLetters.value.slice(0, -1);
