@@ -19,6 +19,7 @@ const tiles = ref('');
 // Watch for changes in the `pokemonName` prop
 watch(() => props.pokemonName, (newPokemonName) => {
   tiles.value = newPokemonName;
+  typedLetters.value = ''; // Reset typedLetters to an empty string
 });
 
 const typedLetters = ref('');
