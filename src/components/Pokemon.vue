@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import Keyboard from './Keyboard.vue';
-import { Region } from '../models/region.js'
+import { Region } from '../models/Region'
 import { Regions } from '../types/regions';
 import { RegionName } from '../types/region-name';
 import { AllRegion } from '../models/all-region';
