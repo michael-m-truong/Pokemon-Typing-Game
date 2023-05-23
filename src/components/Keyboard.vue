@@ -51,7 +51,7 @@ window.addEventListener('keydown', (event) => {
 
 
 watch(typedLetters, (newTypedLetters) => {
-  console.log(newTypedLetters);
+  //console.log(newTypedLetters);
   if (newTypedLetters === tiles.value) {
     // Word is correctly typed, run the function
     setTimeout(() => {
