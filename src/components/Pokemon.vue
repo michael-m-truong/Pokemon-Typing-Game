@@ -169,7 +169,7 @@ onMounted(() => {
       <div class="regions">
         <!-- <button @click="fetchData">Fetch Pokemon Name and Image</button> -->
         <button @click="()=>changeRegion('all')" class="region all">All Regions</button>
-        <button @click="()=>changeRegion('kanto')" class="region kanto">Kanto</button>
+        <button @click="()=>changeRegion('kanto')" class="region kanto active">Kanto</button>
         <button @click="()=>changeRegion('johto')" class="region johto">Johto</button>
         <button @click="()=>changeRegion('hoenn')" class="region hoenn">Hoenn</button>
         <button @click="()=>changeRegion('sinnoh')" class="region sinnoh">Sinnoh</button>
