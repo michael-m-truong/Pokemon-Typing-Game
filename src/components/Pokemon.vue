@@ -1,23 +1,54 @@
 <script setup lang="ts">
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
-import Keyboard from './Keyboard.vue'
+import Keyboard from './Keyboard.vue';
+import { Region } from '../models/region.js'
+import { Regions } from '../types/regions';
+import { RegionName } from '../types/region-name';
+import { AllRegion } from '../models/all-region';
 
 
+let currentPokemonIndex: number | undefined;
 let pokemonName = ref('');
 let pokemonImageUrl = ref('');
 let count = ref(0);
 let pokemonCaught = ref<string[]>([]);
 let currentMiniPokemon = ref('');
 
+let nextPokemonIndex: number | undefined;
 let nextPokemonName = ref('')
 let nextPokemonImageUrl = ref('')
 let nextMiniPokemon = ref('')
 
+//kanto 1-151   151 total
+//johto 152-251  101 total
+//hoenn 252-386   135 total
+//sinnoh 387-493   107 total
+
+const TOTAL_POKEMON = {startIndex: 1, endIndex: 493}
+const TOTAL_KANTO_POKEMON = {startIndex: 1, endIndex: 151}
+const TOTAL_JOHTO_POKEMON = {startIndex: 152, endIndex: 251}
+const TOTAL_HOENN_POKEMON = {startIndex: 252, endIndex: 386}
+const TOTAL_SINNOH_POKEMON = {startIndex: 387, endIndex: 493}
+
+let allRegions: AllRegion;
+let kantoRegion: Region;
+let johtoRegion: Region;
+let hoennRegion: Region;
+let sinnohRegion: Region;
+
+
+let regions: Regions;
+
+
+let currentRegion: Region;
 
 async function fetchData() {
   try {
-    const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    const randomPokemonId = currentRegion.getNextPokemon()
+    currentPokemonIndex = randomPokemonId
+    console.log(randomPokemonId)
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     pokemonName.value = response.data.name;
     pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
@@ -31,12 +62,34 @@ async function fetchData() {
 async function handleEvent() {
   count.value +=1
   try {
+    Region.totalPokemonIndexSet.add(currentPokemonIndex)
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     //const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     pokemonName.value = nextPokemonName.value;
     pokemonImageUrl.value = nextPokemonImageUrl.value;
-    pokemonCaught.value.push(currentMiniPokemon.value)
+    //console.log(pokemonCaught.value)
+    if (!(currentRegion instanceof AllRegion)) {
+      pokemonCaught.value.push(currentMiniPokemon.value)
+    }
+    Region.totalPokemonCaught.push(currentMiniPokemon.value)
+    Region.totalPokemonIndexSet.add(currentPokemonIndex)
+    
+    if (currentPokemonIndex !== undefined && (currentRegion instanceof AllRegion)) {
+      if (currentPokemonIndex >= 1 && currentPokemonIndex <= 151) {
+        kantoRegion.addPokemonCaught(currentMiniPokemon.value);
+      } else if (currentPokemonIndex >= 152 && currentPokemonIndex <= 251) {
+        johtoRegion.addPokemonCaught(currentMiniPokemon.value);
+      } else if (currentPokemonIndex >= 252 && currentPokemonIndex <= 386) {
+        hoennRegion.addPokemonCaught(currentMiniPokemon.value);
+      } else if (currentPokemonIndex >= 387 && currentPokemonIndex <= 493) {
+        sinnohRegion.addPokemonCaught(currentMiniPokemon.value);
+      }
+  }
+
+    //console.log(pokemonCaught.value)
+    //allRegions.addPokemonCaught(currentMiniPokemon.value)
     currentMiniPokemon.value = nextMiniPokemon.value
+    currentPokemonIndex = nextPokemonIndex
     loadNext()
   } catch (error) {
     console.error(error);
@@ -45,7 +98,9 @@ async function handleEvent() {
 
 async function loadNext() {
   try {
-    const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
+    const randomPokemonId = currentRegion.getNextPokemon()
+    nextPokemonIndex = randomPokemonId
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     nextPokemonName.value = response.data.name;
     nextPokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
@@ -56,7 +111,44 @@ async function loadNext() {
   }
 }
 
+
+function changeRegion(region: RegionName) {
+  console.log("this better not run")
+  if (!regions.hasOwnProperty(region)) {
+    return;
+  }
+  else if (currentRegion == regions[region]) {
+    return;
+  }
+  currentRegion.updatePokemonCaught(pokemonCaught.value)
+  currentRegion.addPokemonToOrder(nextPokemonIndex)
+  currentRegion.addPokemonToOrder(currentPokemonIndex)
+  // if (!(currentRegion instanceof AllRegion)) {
+  //   allRegions.combinePokemonCaught(pokemonCaught.value);
+  // }
+  //change region 
+  currentRegion = regions[region]
+  pokemonCaught.value = currentRegion.getPokemonCaught()
+  console.log(currentRegion)
+  fetchData();
+}
+
 onMounted(() => {
+  allRegions = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
+  kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
+  johtoRegion = new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex);
+  hoennRegion = new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex);
+  sinnohRegion = new Region(TOTAL_SINNOH_POKEMON.startIndex, TOTAL_SINNOH_POKEMON.endIndex);
+  
+  currentRegion = kantoRegion
+  regions = {
+    all: allRegions,
+    kanto: kantoRegion,
+    johto: johtoRegion,
+    hoenn: hoennRegion,
+    sinnoh: sinnohRegion,
+  };
+
   fetchData();
 });
 
@@ -68,10 +160,11 @@ onMounted(() => {
     <div class="container">
       <div class="regions">
         <!-- <button @click="fetchData">Fetch Pokemon Name and Image</button> -->
-        <button>Kanto</button>
-        <button>Johto</button>
-        <button>Hoenn</button>
-        <button>Sinnoh</button>
+        <button @click="()=>changeRegion('all')">All Regions</button>
+        <button @click="()=>changeRegion('kanto')">Kanto</button>
+        <button @click="()=>changeRegion('johto')">Johto</button>
+        <button @click="()=>changeRegion('hoenn')">Hoenn</button>
+        <button @click="()=>changeRegion('sinnoh')">Sinnoh</button>
       </div>
 
       <div class="centered-content">

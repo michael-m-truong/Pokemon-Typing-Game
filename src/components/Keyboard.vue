@@ -19,6 +19,7 @@ const tiles = ref('');
 // Watch for changes in the `pokemonName` prop
 watch(() => props.pokemonName, (newPokemonName) => {
   tiles.value = newPokemonName;
+  typedLetters.value = ''; // Reset typedLetters to an empty string
 });
 
 const typedLetters = ref('');
@@ -51,7 +52,7 @@ window.addEventListener('keydown', (event) => {
 
 
 watch(typedLetters, (newTypedLetters) => {
-  console.log(newTypedLetters);
+  //console.log(newTypedLetters);
   if (newTypedLetters === tiles.value) {
     // Word is correctly typed, run the function
     setTimeout(() => {
