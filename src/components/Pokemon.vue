@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import Keyboard from './Keyboard.vue';
-import { Region } from '../models/Region'
+import { Region } from '../models/region'
 import { Regions } from '../types/regions';
 import { RegionName } from '../types/region-name';
 import { AllRegion } from '../models/all-region';
@@ -120,6 +120,14 @@ function changeRegion(region: RegionName) {
   else if (currentRegion == regions[region]) {
     return;
   }
+  const buttons = document.getElementsByClassName('region');
+  for (let i = 0; i < buttons.length; i++) {
+    buttons[i].classList.remove('active');
+  }
+  const selectedButton = document.querySelector(`.region.${region}`);
+  if (selectedButton) {
+    selectedButton.classList.add('active');
+  }
   currentRegion.updatePokemonCaught(pokemonCaught.value)
   currentRegion.addPokemonToOrder(nextPokemonIndex)
   currentRegion.addPokemonToOrder(currentPokemonIndex)
@@ -160,11 +168,11 @@ onMounted(() => {
     <div class="container">
       <div class="regions">
         <!-- <button @click="fetchData">Fetch Pokemon Name and Image</button> -->
-        <button @click="()=>changeRegion('all')">All Regions</button>
-        <button @click="()=>changeRegion('kanto')">Kanto</button>
-        <button @click="()=>changeRegion('johto')">Johto</button>
-        <button @click="()=>changeRegion('hoenn')">Hoenn</button>
-        <button @click="()=>changeRegion('sinnoh')">Sinnoh</button>
+        <button @click="()=>changeRegion('all')" class="region all">All Regions</button>
+        <button @click="()=>changeRegion('kanto')" class="region kanto">Kanto</button>
+        <button @click="()=>changeRegion('johto')" class="region johto">Johto</button>
+        <button @click="()=>changeRegion('hoenn')" class="region hoenn">Hoenn</button>
+        <button @click="()=>changeRegion('sinnoh')" class="region sinnoh">Sinnoh</button>
       </div>
 
       <div class="centered-content">
@@ -190,6 +198,10 @@ onMounted(() => {
   /* * {
     border: 1px solid red;
   } */
+
+  .region.active {
+    background-color: rgb(198, 111, 111)
+}
 
   h2 {
     margin: 0;
