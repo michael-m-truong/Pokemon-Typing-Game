@@ -149,8 +149,5 @@ function changeMusic(musicUrl: any) {
 
 <style scoped>
 
-/* #audioPlayer {
-    max-width: 11.8em;
-} */
 
 </style>
