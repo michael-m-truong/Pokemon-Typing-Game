@@ -6,6 +6,7 @@ import { Region } from '../models/region'
 import { Regions } from '../types/regions';
 import { RegionName } from '../types/region-name';
 import { AllRegion } from '../models/all-region';
+import MusicPlayer from './MusicPlayer.vue'
 //import { io } from "socket.io-client";
 
 
@@ -241,6 +242,7 @@ onMounted(() => {
         <button @click="()=>changeRegion('hoenn')" class="region hoenn">Hoenn</button>
         <button @click="()=>changeRegion('sinnoh')" class="region sinnoh">Sinnoh</button>
         <button @click="()=>restart()" class="">Restart Game</button>
+        <MusicPlayer :pokemonName="pokemonName"/>
       </div>
 
       <div class="centered-content">
