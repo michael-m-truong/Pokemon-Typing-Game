@@ -6,6 +6,7 @@ import { Region } from '../models/region'
 import { Regions } from '../types/regions';
 import { RegionName } from '../types/region-name';
 import { AllRegion } from '../models/all-region';
+import MusicPlayer from './MusicPlayer.vue'
 //import { io } from "socket.io-client";
 
 
@@ -51,8 +52,8 @@ async function fetchData() {
     if (randomPokemonId == -1) return
     currentPokemonIndex = randomPokemonId
     console.log(randomPokemonId)
-    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
-    pokemonName.value = response.data.name;
+    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/487`);
+    pokemonName.value = response.data.species.name;
     pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
     currentMiniPokemon.value = response.data.sprites.front_default;
     loadNext()
@@ -241,6 +242,7 @@ onMounted(() => {
         <button @click="()=>changeRegion('hoenn')" class="region hoenn">Hoenn</button>
         <button @click="()=>changeRegion('sinnoh')" class="region sinnoh">Sinnoh</button>
         <button @click="()=>restart()" class="">Restart Game</button>
+        <MusicPlayer :pokemonName="pokemonName"/>
       </div>
 
       <div class="centered-content">
