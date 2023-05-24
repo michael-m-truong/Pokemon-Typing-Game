@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, watch } from 'vue';
 import three_birds_song from '../assets/audio/three_birds.mp3'
 import arceus_song from '../assets/audio/arceus.mp3'
 import celibi_song from '../assets/audio/celibi.mp3'
@@ -103,7 +103,7 @@ onMounted(() => {
   console.log(audioPlayer)
 });
 
-function handleKeyDown(event: KeyboardEvent) {
+function handleKeyDown() {
     //changeMusic(three_birds)
     playMusic()
     document.removeEventListener('keydown', handleKeyDown);
