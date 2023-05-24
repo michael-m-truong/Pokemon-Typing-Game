@@ -6,6 +6,7 @@ import { Region } from '../models/region'
 import { Regions } from '../types/regions';
 import { RegionName } from '../types/region-name';
 import { AllRegion } from '../models/all-region';
+//import { io } from "socket.io-client";
 
 
 let currentPokemonIndex: number | undefined;
@@ -47,6 +48,7 @@ async function fetchData() {
   try {
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     const randomPokemonId = currentRegion.getNextPokemon()
+    if (randomPokemonId == -1) return
     currentPokemonIndex = randomPokemonId
     console.log(randomPokemonId)
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
@@ -90,6 +92,13 @@ async function handleEvent() {
     //allRegions.addPokemonCaught(currentMiniPokemon.value)
     currentMiniPokemon.value = nextMiniPokemon.value
     currentPokemonIndex = nextPokemonIndex
+
+    let savedIndexes: string = JSON.stringify(Array.from(Region.totalPokemonIndexSet))
+    localStorage.setItem('totalPokemonIndexSet', savedIndexes)
+
+    let savedImgs: string = JSON.stringify(Array.from(Region.totalPokemonCaught))
+    localStorage.setItem('totalPokemonCaught', savedImgs)
+
     loadNext()
   } catch (error) {
     console.error(error);
@@ -100,6 +109,7 @@ async function loadNext() {
   try {
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     const randomPokemonId = currentRegion.getNextPokemon()
+    if (randomPokemonId == -1) return
     nextPokemonIndex = randomPokemonId
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     nextPokemonName.value = response.data.name;
@@ -141,12 +151,68 @@ function changeRegion(region: RegionName) {
   fetchData();
 }
 
-onMounted(() => {
+function multiplayer() {
+  alert("Not working yet amber and kira, in progress -Michael")
+  // const socket = io('http://localhost:8080');
+
+  // socket.on('ready', text => {
+  //   alert(text)
+  // });
+}
+
+function restart() {
   allRegions = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
   kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
   johtoRegion = new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex);
   hoennRegion = new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex);
   sinnohRegion = new Region(TOTAL_SINNOH_POKEMON.startIndex, TOTAL_SINNOH_POKEMON.endIndex);
+  localStorage.removeItem('totalPokemonCaught');
+  localStorage.removeItem('totalPokemonIndexSet');
+  currentPokemonIndex = undefined;
+  pokemonName.value = '';
+  pokemonImageUrl.value = '';
+  count.value = 0;
+  pokemonCaught.value = [];
+  currentMiniPokemon.value = '';
+  nextPokemonIndex = undefined;
+  nextPokemonName.value = '';
+  nextPokemonImageUrl.value = '';
+  nextMiniPokemon.value = '';
+
+  fetchData()
+}
+
+onMounted(() => {
+
+  let savedPokemon: any = JSON.parse(localStorage.getItem('totalPokemonCaught') || 'null');
+  if (savedPokemon !== null) Region.totalPokemonCaught = savedPokemon
+
+  let savedIndexes: any = JSON.parse(localStorage.getItem('totalPokemonIndexSet') ?? 'null');
+  if (savedIndexes !== null) Region.totalPokemonIndexSet = new Set(savedIndexes)
+
+  allRegions = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
+  kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
+  johtoRegion = new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex);
+  hoennRegion = new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex);
+  sinnohRegion = new Region(TOTAL_SINNOH_POKEMON.startIndex, TOTAL_SINNOH_POKEMON.endIndex);
+
+  if (savedPokemon !== null) {
+    for (const img of savedPokemon) {
+      const filename = img.substring(img.lastIndexOf('/') + 1);
+      let num = parseInt(filename.replace('.svg', ''));
+      console.log(filename)
+      if (num >= 1 && num <= 151) {
+        kantoRegion.addPokemonCaught(img);
+      } else if (num >= 152 && num <= 251) {
+        johtoRegion.addPokemonCaught(img);
+      } else if (num >= 252 && num <= 386) {
+        hoennRegion.addPokemonCaught(img);
+      } else if (num >= 387 && num <= 493) {
+        sinnohRegion.addPokemonCaught(img);
+      }
+    }
+    pokemonCaught.value = kantoRegion.getPokemonCaught()
+  }
   
   currentRegion = kantoRegion
   regions = {
@@ -168,11 +234,13 @@ onMounted(() => {
     <div class="container">
       <div class="regions">
         <!-- <button @click="fetchData">Fetch Pokemon Name and Image</button> -->
+        <button @click="()=>multiplayer()" class="">Multiplayer</button>
         <button @click="()=>changeRegion('all')" class="region all">All Regions</button>
         <button @click="()=>changeRegion('kanto')" class="region kanto active">Kanto</button>
         <button @click="()=>changeRegion('johto')" class="region johto">Johto</button>
         <button @click="()=>changeRegion('hoenn')" class="region hoenn">Hoenn</button>
         <button @click="()=>changeRegion('sinnoh')" class="region sinnoh">Sinnoh</button>
+        <button @click="()=>restart()" class="">Restart Game</button>
       </div>
 
       <div class="centered-content">

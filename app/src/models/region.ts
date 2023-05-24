@@ -4,12 +4,27 @@ export class Region {
     static totalPokemonIndexSet: Set<number|undefined> = new Set()
     pokemonOrder: number[];
     pokemonCaught: string[];
+    startIndex: number;
+    endIndex: number;
 
     constructor(startIndex: number, endIndex: number) {
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
         this.pokemonCaught = []
-        this.pokemonOrder = Array.from({ length: endIndex-startIndex+1 }, (_, index) => index + startIndex);
+        //this.pokemonOrder = Array.from({ length: endIndex-startIndex+1 }, (_, index) => index + startIndex);
+        let temp: any = new Set<number>();
+        for (let i = startIndex; i <= endIndex; i++) {
+            if (!Region.totalPokemonIndexSet.has(i)) {
+              temp.add(i);
+            }
+          }
+        this.pokemonOrder = Array.from(temp);
         this.pokemonOrder = Region.shuffleArray(this.pokemonOrder)
     }
+
+    // loadPokemonCaught(savedPokemon: string) {
+    //     this.pokemonCaught.push(savedPokemon);
+    // }
 
     addPokemonCaught(pokemonMiniImage: string): void {
         this.pokemonCaught.push(pokemonMiniImage)
