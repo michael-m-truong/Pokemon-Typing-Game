@@ -8,31 +8,44 @@ const io = new Server(http, {
 
 const chatMessages: string[] = []; // Collection to store chat messages
 let connectedClients: number = 0; // Number of connected clients
+let gameRooms: string[] = []; // Array to store game room names
+
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
-    connectedClients++;
+  console.log('a user connected');
+  connectedClients++;
+
+  if (connectedClients === 1) {
+    // Create a new game room and join it
+    const gameRoom = `GameRoom${gameRooms.length}`;
+    gameRooms.push(gameRoom);
+
+    // Join the game room
+    socket.join(gameRoom);
+    console.log(`Client ${socket.id} joined ${gameRoom}`);
+  }
   
-    // Check if there are two connected clients
-    if (connectedClients === 2) {
-      io.emit('ready', 'Both clients connected'); // Emit a message when two clients are connected
+  else if (connectedClients === 2) {
+    // Join the game room
+    socket.join(`GameRoom${gameRooms.length}`);
+    console.log(`Client ${socket.id} joined ${gameRooms}`);
+    connectedClients = 0
+
+    io.to(gameRoom).emit('ready', `Both clients connected to ${gameRoom}, the total is ${connectedClients}`);
+  }
+  // Check if there are two connected clients
+  
+  socket.on('disconnect', () => {
+    console.log('a user disconnected');
+    connectedClients--;
+
+    // Remove the game room if it becomes empty
+    if (connectedClients === 0) {
+      const gameRoom = gameRooms.pop();
+      console.log(`Game room ${gameRoom} removed`);
     }
-  
-    socket.on('disconnect', () => {
-      console.log('a user disconnected');
-      connectedClients--;
-    });
-  
-    // Send previous chat messages to the newly connected client
-    // socket.emit('chatHistory', chatMessages);
-  
-    // socket.on('message', (message) => {
-    //   console.log(message);
-    //   const chatMessage = `${socket.id.substr(0, 2)} said ${message}`;
-    //   chatMessages.push(chatMessage); // Store the new chat message
-    //   io.emit('message', chatMessage);
-    // });
   });
+});
   
   http.listen(8080, () => console.log('listening on http://localhost:8080'));
   

@@ -6,7 +6,7 @@ import { Region } from '../models/region'
 import { Regions } from '../types/regions';
 import { RegionName } from '../types/region-name';
 import { AllRegion } from '../models/all-region';
-import { io } from "socket.io-client";
+//import { io } from "socket.io-client";
 
 
 let currentPokemonIndex: number | undefined;
