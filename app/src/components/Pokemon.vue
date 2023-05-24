@@ -48,6 +48,7 @@ async function fetchData() {
   try {
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     const randomPokemonId = currentRegion.getNextPokemon()
+    if (randomPokemonId == -1) return
     currentPokemonIndex = randomPokemonId
     console.log(randomPokemonId)
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
@@ -108,6 +109,7 @@ async function loadNext() {
   try {
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     const randomPokemonId = currentRegion.getNextPokemon()
+    if (randomPokemonId == -1) return
     nextPokemonIndex = randomPokemonId
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
     nextPokemonName.value = response.data.name;
@@ -150,11 +152,34 @@ function changeRegion(region: RegionName) {
 }
 
 function multiplayer() {
-  const socket = io('http://localhost:8080');
+  alert("Not working yet amber and kira, in progress -Michael")
+  // const socket = io('http://localhost:8080');
 
-  socket.on('ready', text => {
-    alert(text)
-  });
+  // socket.on('ready', text => {
+  //   alert(text)
+  // });
+}
+
+function restart() {
+  allRegions = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
+  kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
+  johtoRegion = new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex);
+  hoennRegion = new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex);
+  sinnohRegion = new Region(TOTAL_SINNOH_POKEMON.startIndex, TOTAL_SINNOH_POKEMON.endIndex);
+  localStorage.removeItem('totalPokemonCaught');
+  localStorage.removeItem('totalPokemonIndexSet');
+  currentPokemonIndex = undefined;
+  pokemonName.value = '';
+  pokemonImageUrl.value = '';
+  count.value = 0;
+  pokemonCaught.value = [];
+  currentMiniPokemon.value = '';
+  nextPokemonIndex = undefined;
+  nextPokemonName.value = '';
+  nextPokemonImageUrl.value = '';
+  nextMiniPokemon.value = '';
+
+  fetchData()
 }
 
 onMounted(() => {
@@ -215,6 +240,7 @@ onMounted(() => {
         <button @click="()=>changeRegion('johto')" class="region johto">Johto</button>
         <button @click="()=>changeRegion('hoenn')" class="region hoenn">Hoenn</button>
         <button @click="()=>changeRegion('sinnoh')" class="region sinnoh">Sinnoh</button>
+        <button @click="()=>restart()" class="">Restart Game</button>
       </div>
 
       <div class="centered-content">
