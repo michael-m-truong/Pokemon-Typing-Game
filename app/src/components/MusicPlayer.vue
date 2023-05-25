@@ -112,7 +112,8 @@ function handleKeyDown() {
 function playMusic(): void {
     console.log('here')
     if (audioPlayer) {
-        if (audioPlayer.src === "") return
+        console.log(audioPlayer.src)
+        if (audioPlayer.src === window.location.href) return
         audioPlayer.pause();
         audioPlayer.play();
         audioPlayer.addEventListener('ended', () => {
@@ -142,7 +143,7 @@ function changeMusic(musicUrl: any) {
   Your browser does not support the audio element.
 </audio>
 <audio ref="legendaryAudioPlayer" id="legendaryAudioPlayer">
-  <source src="" type="audio/mp3">
+  <source src="noneeee" type="audio/mp3">
   Your browser does not support the audio element.
 </audio>
 </template>

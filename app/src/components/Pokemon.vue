@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import axios from 'axios';
-import { onMounted, ref } from 'vue';
+import { Ref, onMounted, ref } from 'vue';
 import Keyboard from './Keyboard.vue';
 import { Region } from '../models/region'
 import { Regions } from '../types/regions';
 import { RegionName } from '../types/region-name';
 import { AllRegion } from '../models/all-region';
 import MusicPlayer from './MusicPlayer.vue'
-import { io } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
+import { DefaultEventsMap } from '@socket.io/component-emitter';
 
 
 let currentPokemonIndex: number | undefined;
@@ -43,12 +44,23 @@ let sinnohRegion: Region;
 let regions: Regions;
 let currentRegion: Region;
 
-let totalSockets: number = 0
+let totalSockets: Ref<number> = ref(0)
+let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 
-async function fetchData() {
+let showModal = ref(false);
+
+async function fetchData(index?: number) {
   try {
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
-    const randomPokemonId = currentRegion.getNextPokemon()
+    let randomPokemonId;
+    if (index) {
+      console.log('huhhhhh')
+      randomPokemonId = index
+    }
+    else {
+      console.log(index)
+      randomPokemonId = currentRegion.getNextPokemon()
+    }
     if (randomPokemonId == -1) return
     currentPokemonIndex = randomPokemonId
     console.log(randomPokemonId)
@@ -56,20 +68,28 @@ async function fetchData() {
     pokemonName.value = response.data.species.name;
     pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
     currentMiniPokemon.value = response.data.sprites.front_default;
-    loadNext()
+    if (!index) {
+      console.log(index)
+      loadNext()
+    }
   } catch (error) {
     console.error(error);
   }
 }
 
 async function handleEvent() {
+  console.log(pokemonCaught)
   count.value +=1
   try {
     Region.totalPokemonIndexSet.add(currentPokemonIndex)
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     //const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
-    pokemonName.value = nextPokemonName.value;
-    pokemonImageUrl.value = nextPokemonImageUrl.value;
+    if (totalSockets.value == 0) {
+      console.log("hereeee")
+      pokemonName.value = nextPokemonName.value;
+      console.log(nextPokemonImageUrl.value)
+      pokemonImageUrl.value = nextPokemonImageUrl.value;
+    }
     //console.log(pokemonCaught.value)
     if (!(currentRegion instanceof AllRegion)) {
       pokemonCaught.value.push(currentMiniPokemon.value)
@@ -91,22 +111,31 @@ async function handleEvent() {
 
     //console.log(pokemonCaught.value)
     //allRegions.addPokemonCaught(currentMiniPokemon.value)
-    currentMiniPokemon.value = nextMiniPokemon.value
-    currentPokemonIndex = nextPokemonIndex
+    if (totalSockets.value == 0) {
+      currentMiniPokemon.value = nextMiniPokemon.value
+      currentPokemonIndex = nextPokemonIndex
 
-    let savedIndexes: string = JSON.stringify(Array.from(Region.totalPokemonIndexSet))
-    localStorage.setItem('totalPokemonIndexSet', savedIndexes)
+      let savedIndexes: string = JSON.stringify(Array.from(Region.totalPokemonIndexSet))
+      localStorage.setItem('totalPokemonIndexSet', savedIndexes)
 
-    let savedImgs: string = JSON.stringify(Array.from(Region.totalPokemonCaught))
-    localStorage.setItem('totalPokemonCaught', savedImgs)
+      let savedImgs: string = JSON.stringify(Array.from(Region.totalPokemonCaught))
+      localStorage.setItem('totalPokemonCaught', savedImgs)
 
-    loadNext()
+      loadNext()
+    }
+    else {
+      socket.emit('caughtPokemon', {
+        caughtPokemonIndex: currentPokemonIndex,
+        caughtPokemonMiniImg: currentMiniPokemon.value
+      })
+    }
   } catch (error) {
     console.error(error);
   }
 }
 
 async function loadNext() {
+  console.log('huh')
   try {
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     const randomPokemonId = currentRegion.getNextPokemon()
@@ -117,6 +146,7 @@ async function loadNext() {
     nextPokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
     nextMiniPokemon.value = response.data.sprites.front_default;
     console.log("next")
+    console.log(nextPokemonImageUrl.value)
   } catch (error) {
     console.error(error);
   }
@@ -154,17 +184,29 @@ function changeRegion(region: RegionName) {
 
 function multiplayer() {
   //alert("Not working yet amber and kira, in progress -Michael")
-  if (totalSockets === 1) return
-  const socket = io('http://localhost:8080');
+  if (totalSockets.value === 1) return
+  socket = io('http://localhost:8080');
 
   socket.emit('joinRoom')
 
-  socket.on('ready', text => {
-    alert(text)
+  socket.on('ready', data => {
+    alert(data.msg)
     init_multiplayer()
-    
+    currentPokemonIndex = data?.nextPokemonIndex
+    fetchData(currentPokemonIndex)
   });
-  totalSockets++
+
+  socket.on('recievePokemon', data => {
+    currentPokemonIndex = data?.nextPokemonIndex
+    fetchData(currentPokemonIndex)
+  });
+
+  socket.on('syncPokemon', data => {
+    pokemonCaught.value.push(data?.otherPokemon)
+    console.log(pokemonCaught.value)
+  });
+
+  totalSockets.value++
 }
 
 function restart() {
@@ -185,7 +227,9 @@ function restart() {
   nextPokemonName.value = '';
   nextPokemonImageUrl.value = '';
   nextMiniPokemon.value = '';
-
+  Region.totalPokemonCaught = []
+  Region.totalPokemonIndexSet.clear()
+  init_game()
   fetchData()
 }
 
@@ -207,8 +251,7 @@ function init_multiplayer() {
   nextMiniPokemon.value = '';
 }
 
-onMounted(() => {
-
+function init_game() {
   let savedPokemon: any = JSON.parse(localStorage.getItem('totalPokemonCaught') || 'null');
   if (savedPokemon !== null) Region.totalPokemonCaught = savedPokemon
 
@@ -249,6 +292,10 @@ onMounted(() => {
   };
 
   fetchData();
+}
+
+onMounted(() => {
+  init_game()
 });
 
 </script>
@@ -259,7 +306,28 @@ onMounted(() => {
     <div class="container">
       <div class="regions">
         <!-- <button @click="fetchData">Fetch Pokemon Name and Image</button> -->
-        <button @click="()=>multiplayer()" class="">Multiplayer</button>
+        <button v-if="totalSockets == 0" @click="()=> showModal = true">Multiplayer</button>
+        <!-- <button v-if="totalSockets == 0" @click="()=>multiplayer()" class="">Multiplayer</button> -->
+        <button v-if="totalSockets == 1" @click="()=>{totalSockets = 0; socket.disconnect(); init_game()}" class="">Quit</button>
+
+        <!-- Modal -->
+        <div class="modal-overlay" v-if="showModal">
+          <div class="modal">
+            <div class="modal-content">
+              <!-- Modal content goes here -->
+              <h2>Select game mode</h2>
+              <br>
+              <button @click="()=>{multiplayer(); showModal = false}" class="">Co-op</button>
+              <button @click="()=>{showModal = false}" class="">Battle</button>
+              <br>
+              <br>
+              <br>
+              <!-- Close button -->
+              <button @click="()=>showModal = false">Close</button>
+            </div>
+          </div>
+        </div>
+
         <button @click="()=>changeRegion('all')" class="region all">All Regions</button>
         <button @click="()=>changeRegion('kanto')" class="region kanto active">Kanto</button>
         <button @click="()=>changeRegion('johto')" class="region johto">Johto</button>
@@ -362,6 +430,26 @@ onMounted(() => {
   max-height: 300px;
   overflow-y: auto;
 
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background-color: #fff;
+  border-radius: 4px;
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
 }
   </style>
   
