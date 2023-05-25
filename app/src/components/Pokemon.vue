@@ -7,7 +7,7 @@ import { Regions } from '../types/regions';
 import { RegionName } from '../types/region-name';
 import { AllRegion } from '../models/all-region';
 import MusicPlayer from './MusicPlayer.vue'
-//import { io } from "socket.io-client";
+import { io } from "socket.io-client";
 
 
 let currentPokemonIndex: number | undefined;
@@ -41,9 +41,9 @@ let sinnohRegion: Region;
 
 
 let regions: Regions;
-
-
 let currentRegion: Region;
+
+let totalSockets: number = 0
 
 async function fetchData() {
   try {
@@ -52,7 +52,7 @@ async function fetchData() {
     if (randomPokemonId == -1) return
     currentPokemonIndex = randomPokemonId
     console.log(randomPokemonId)
-    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
+    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/386`);
     pokemonName.value = response.data.species.name;
     pokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
     currentMiniPokemon.value = response.data.sprites.front_default;
@@ -113,7 +113,7 @@ async function loadNext() {
     if (randomPokemonId == -1) return
     nextPokemonIndex = randomPokemonId
     const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
-    nextPokemonName.value = response.data.name;
+    nextPokemonName.value = response.data.species.name;
     nextPokemonImageUrl.value = response.data.sprites.other.dream_world.front_default;
     nextMiniPokemon.value = response.data.sprites.front_default;
     console.log("next")
@@ -153,12 +153,18 @@ function changeRegion(region: RegionName) {
 }
 
 function multiplayer() {
-  alert("Not working yet amber and kira, in progress -Michael")
-  // const socket = io('http://localhost:8080');
+  //alert("Not working yet amber and kira, in progress -Michael")
+  if (totalSockets === 1) return
+  const socket = io('http://localhost:8080');
 
-  // socket.on('ready', text => {
-  //   alert(text)
-  // });
+  socket.emit('joinRoom')
+
+  socket.on('ready', text => {
+    alert(text)
+    init_multiplayer()
+    
+  });
+  totalSockets++
 }
 
 function restart() {
@@ -181,6 +187,24 @@ function restart() {
   nextMiniPokemon.value = '';
 
   fetchData()
+}
+
+function init_multiplayer() {
+  allRegions = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
+  kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
+  johtoRegion = new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex);
+  hoennRegion = new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex);
+  sinnohRegion = new Region(TOTAL_SINNOH_POKEMON.startIndex, TOTAL_SINNOH_POKEMON.endIndex);
+  currentPokemonIndex = undefined;
+  pokemonName.value = '';
+  pokemonImageUrl.value = '';
+  count.value = 0;
+  pokemonCaught.value = [];
+  currentMiniPokemon.value = '';
+  nextPokemonIndex = undefined;
+  nextPokemonName.value = '';
+  nextPokemonImageUrl.value = '';
+  nextMiniPokemon.value = '';
 }
 
 onMounted(() => {
