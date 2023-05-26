@@ -256,7 +256,7 @@ function multiplayer() {
 
   socket.on('syncPokemon', data => {
     console.log(data.currentRegion)
-    if (((((currentRegion.determineRegion() != data.currentRegion) && (currentRegion.determineRegion() != 'allRegion' && data.currentRegion != 'allRegion')) || (currentRegion.determineRegion() == 'allRegion' && data.currentRegion == 'allRegion')))) return
+    if (((((currentRegion.determineRegion() != data.currentRegion) && (currentRegion.determineRegion() != 'allRegion' || data.currentRegion == 'allRegion')) || (currentRegion.determineRegion() == 'allRegion' && data.currentRegion == 'allRegion')))) return
     console.log("PLEASEEE")
     pokemonCaught.value.push(data?.otherPokemon)
     console.log(pokemonCaught.value)
