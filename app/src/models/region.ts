@@ -58,6 +58,21 @@ export class Region {
         return randomPokemonIndex;
 
     }
+
+    determineRegion(): string {
+        if (this.startIndex == 1 && this.endIndex == 151) {
+            return 'kanto'
+        } else if (this.startIndex == 152 && this.endIndex == 251) {
+            return 'johto'
+        } else if (this.startIndex == 252 && this.endIndex == 386) {
+            return 'hoenn'
+        } else if (this.startIndex == 387 && this.endIndex == 493) {
+            return 'sinnoh'
+        }
+        else {
+            return 'allRegion'
+        }
+    }
     
     static shuffleArray(array: number[]): number[] {
         const length = array.length;

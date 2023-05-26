@@ -1,7 +1,7 @@
 export class Region {
     
-    static totalPokemonCaught: string[] = [];
-    static totalPokemonIndexSet: Set<number|undefined> = new Set()
+    // static totalPokemonCaught: string[] = [];
+    // static totalPokemonIndexSet: Set<number|undefined> = new Set()
     pokemonOrder: number[];
     pokemonCaught: string[];
     startIndex: number;
@@ -11,14 +11,14 @@ export class Region {
         this.startIndex = startIndex;
         this.endIndex = endIndex;
         this.pokemonCaught = []
-        //this.pokemonOrder = Array.from({ length: endIndex-startIndex+1 }, (_, index) => index + startIndex);
+        this.pokemonOrder = Array.from({ length: endIndex-startIndex+1 }, (_, index) => index + startIndex);
         let temp: any = new Set<number>();
-        for (let i = startIndex; i <= endIndex; i++) {
-            if (!Region.totalPokemonIndexSet.has(i)) {
-              temp.add(i);
-            }
-          }
-        this.pokemonOrder = Array.from(temp);
+        // for (let i = startIndex; i <= endIndex; i++) {
+        //     if (!Region.totalPokemonIndexSet.has(i)) {
+        //       temp.add(i);
+        //     }
+        //   }
+        // this.pokemonOrder = Array.from(temp);
         this.pokemonOrder = Region.shuffleArray(this.pokemonOrder)
     }
 
@@ -46,17 +46,32 @@ export class Region {
         this.pokemonCaught = pokemonCaught
     }
 
-    getNextPokemon(): number | undefined{
+    getNextPokemon(totalPokemonIndexSet: Set<number>): number | undefined{
         if (this.pokemonOrder.length == 0) {
             return -1
         }
         //console.log("num: "+ this.pokemonOrder[this.pokemonOrder.length-1])
         let randomPokemonIndex: number | undefined = this.pokemonOrder.pop();
-        while (Region.totalPokemonIndexSet.has(randomPokemonIndex)) {
+        while (totalPokemonIndexSet.has(randomPokemonIndex)) {
             randomPokemonIndex = this.pokemonOrder.pop();
         }
         return randomPokemonIndex;
 
+    }
+
+    determineRegion(): string {
+        if (this.startIndex == 1 && this.endIndex == 151) {
+            return 'kanto'
+        } else if (this.startIndex == 152 && this.endIndex == 251) {
+            return 'johto'
+        } else if (this.startIndex == 252 && this.endIndex == 386) {
+            return 'hoenn'
+        } else if (this.startIndex == 387 && this.endIndex == 493) {
+            return 'sinnoh'
+        }
+        else {
+            return 'allRegion'
+        }
     }
     
     static shuffleArray(array: number[]): number[] {

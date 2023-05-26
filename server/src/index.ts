@@ -31,7 +31,13 @@ io.on('connection', (socket) => {
       gameRooms.set(gameRoom, {
         roomId: gameRoom,
         gameStatus: true,
-        kanto: new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex)
+        kanto: new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex),
+        johto: new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex),
+        hoenn: new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex),
+        sinnoh: new Region(TOTAL_SINNOH_POKEMON.startIndex, TOTAL_SINNOH_POKEMON.endIndex),
+        allRegion: new Region(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex),
+        totalPokemonIndexSet: new Set<number>(),
+        totalPokemonCaught: []
       })
 
       // Join the game room
@@ -52,7 +58,7 @@ io.on('connection', (socket) => {
 
           socket.emit('ready', { 
             msg: message, 
-            nextPokemon: gameRooms.get(gameRoom).kanto.getNextPokemon()
+            nextPokemon: gameRooms.get(gameRoom).kanto.getNextPokemon(new Set())
           });
         });
       }
@@ -67,11 +73,42 @@ io.on('connection', (socket) => {
         joinedRooms.push(room);
       }
     });
+    const totalPokemonIndexSet = gameRooms.get(joinedRooms[0]).totalPokemonIndexSet
     console.log(joinedRooms)
     console.log(`Client ${socket.id} is in rooms:`, joinedRooms[0]);
-    socket.emit('recievePokemon', {
-      nextPokemonIndex: gameRooms.get(joinedRooms[0]).kanto.getNextPokemon()
-    })
+    gameRooms.get(joinedRooms[0]).totalPokemonIndexSet.add(data.caughtPokemonIndex)
+    gameRooms.get(joinedRooms[0]).allRegion.addPokemonCaught(data.caughtPokemonMiniImg)
+    if (data.currentRegion == 'kanto') {
+      gameRooms.get(joinedRooms[0]).kanto.addPokemonCaught(data.caughtPokemonMiniImg)
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).kanto.getNextPokemon(totalPokemonIndexSet)
+      })
+    }
+    else if (data.currentRegion == 'johto') {
+      gameRooms.get(joinedRooms[0]).johto.addPokemonCaught(data.caughtPokemonMiniImg)
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).johto.getNextPokemon(totalPokemonIndexSet)
+      })
+    }
+    else if (data.currentRegion == 'hoenn') {
+      gameRooms.get(joinedRooms[0]).hoenn.addPokemonCaught(data.caughtPokemonMiniImg)
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).hoenn.getNextPokemon(totalPokemonIndexSet)
+      })
+    }
+    else if (data.currentRegion == 'sinnoh') {
+      gameRooms.get(joinedRooms[0]).sinnoh.addPokemonCaught(data.caughtPokemonMiniImg)
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).sinnoh.getNextPokemon(totalPokemonIndexSet)
+      })
+    }
+    else if (data.currentRegion == 'allRegion') {
+      gameRooms.get(joinedRooms[0]).allRegion.addPokemonCaught(data.caughtPokemonMiniImg)
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).allRegion.getNextPokemon(totalPokemonIndexSet)
+      })
+    }
+
 
     const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
     // Emit the message to all other sockets in the room except the current socket
@@ -82,11 +119,181 @@ io.on('connection', (socket) => {
         const otherSocket = io.to(otherSocketId);
         console.log(data.caughtPokemonMiniImg)
         otherSocket.emit('syncPokemon', {
-          otherPokemon: data.caughtPokemonMiniImg
+          otherPokemon: data.caughtPokemonMiniImg,
+          currentRegion: data.currentRegion
         });
       }
     });
   });
+
+  socket.on('changeRegion', (data) =>{
+
+  
+
+    
+    const joinedRooms = []
+    socket.rooms.forEach((room) => {
+      if (room !== socket.id) {
+        joinedRooms.push(room);
+      }
+    });
+    const totalPokemonIndexSet = gameRooms.get(joinedRooms[0]).totalPokemonIndexSet
+    if (data.oldRegion == 'kanto') {
+      gameRooms.get(joinedRooms[0]).kanto.addPokemonToOrder(data?.currentPokemonIndex)
+    }
+    else if (data.oldRegion == 'johto') {
+      gameRooms.get(joinedRooms[0]).johto.addPokemonToOrder(data?.currentPokemonIndex)
+    }
+    else if (data.oldRegion == 'hoenn') {
+      gameRooms.get(joinedRooms[0]).hoenn.addPokemonToOrder(data?.currentPokemonIndex)
+    }
+    else if (data.oldRegion == 'sinnoh') {
+      gameRooms.get(joinedRooms[0]).sinnoh.addPokemonToOrder(data?.currentPokemonIndex)
+    }
+    else if (data.oldRegion == 'allRegion') {
+      gameRooms.get(joinedRooms[0]).allRegion.addPokemonToOrder(data?.currentPokemonIndex)
+    }
+
+
+    console.log(data.newRegion)
+    if (data.newRegion == 'kanto') {
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).kanto.getNextPokemon(totalPokemonIndexSet)
+      })
+      socket.emit('syncNewRegionPokemon', {
+        newPokemonCaught: gameRooms.get(joinedRooms[0]).kanto.getPokemonCaught()
+      })
+    }
+    else if (data.newRegion == 'johto') {
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).johto.getNextPokemon(totalPokemonIndexSet)
+      })
+      socket.emit('syncNewRegionPokemon', {
+        newPokemonCaught: gameRooms.get(joinedRooms[0]).johto.getPokemonCaught()
+      })
+    }
+    else if (data.newRegion == 'hoenn') {
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).hoenn.getNextPokemon(totalPokemonIndexSet)
+      })
+      socket.emit('syncNewRegionPokemon', {
+        newPokemonCaught: gameRooms.get(joinedRooms[0]).hoenn.getPokemonCaught()
+      })
+    }
+    else if (data.newRegion == 'sinnoh') {
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).sinnoh.getNextPokemon(totalPokemonIndexSet)
+      })
+      socket.emit('syncNewRegionPokemon', {
+        newPokemonCaught: gameRooms.get(joinedRooms[0]).sinnoh.getPokemonCaught()
+      })
+    }
+    else if (data.newRegion == 'allRegion') {
+      socket.emit('recievePokemon', {
+        nextPokemonIndex: gameRooms.get(joinedRooms[0]).allRegion.getNextPokemon(totalPokemonIndexSet)
+      })
+      socket.emit('syncNewRegionPokemon', {
+        newPokemonCaught: gameRooms.get(joinedRooms[0]).allRegion.getPokemonCaught()
+      })
+    }
+
+  })
+
+  socket.on('addKanto', (data) => {
+    const joinedRooms = []
+    socket.rooms.forEach((room) => {
+      if (room !== socket.id) {
+        joinedRooms.push(room);
+      }
+    });
+    gameRooms.get(joinedRooms[0]).hoenn.addPokemonCaught(data.pokemonMiniImg)
+    const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
+    // Emit the message to all other sockets in the room except the current socket
+    console.log(roomSockets)
+    //const baseImgUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/"
+    roomSockets.forEach((otherSocketId) => {
+      if (otherSocketId !== socket.id) {
+        const otherSocket = io.to(otherSocketId);
+        console.log(data.caughtPokemonMiniImg)
+        otherSocket.emit('syncPokemon', {
+          otherPokemon: data.caughtPokemonMiniImg,
+          currentRegion: 'kanto'
+        });
+      }
+    });
+  })
+
+  socket.on('addJohto', (data) => {
+    const joinedRooms = []
+    socket.rooms.forEach((room) => {
+      if (room !== socket.id) {
+        joinedRooms.push(room);
+      }
+    });
+    gameRooms.get(joinedRooms[0]).hoenn.addPokemonCaught(data.pokemonMiniImg)
+    const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
+    // Emit the message to all other sockets in the room except the current socket
+    console.log(roomSockets)
+    //const baseImgUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/"
+    roomSockets.forEach((otherSocketId) => {
+      if (otherSocketId !== socket.id) {
+        const otherSocket = io.to(otherSocketId);
+        console.log(data.caughtPokemonMiniImg)
+        otherSocket.emit('syncPokemon', {
+          otherPokemon: data.caughtPokemonMiniImg,
+          currentRegion: 'johto'
+        });
+      }
+    });
+  })
+
+  socket.on('addHoenn', (data) => {
+    const joinedRooms = []
+    socket.rooms.forEach((room) => {
+      if (room !== socket.id) {
+        joinedRooms.push(room);
+      }
+    });
+    gameRooms.get(joinedRooms[0]).hoenn.addPokemonCaught(data.pokemonMiniImg)
+    const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
+    // Emit the message to all other sockets in the room except the current socket
+    console.log(roomSockets)
+    //const baseImgUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/"
+    roomSockets.forEach((otherSocketId) => {
+      if (otherSocketId !== socket.id) {
+        const otherSocket = io.to(otherSocketId);
+        console.log(data.caughtPokemonMiniImg)
+        otherSocket.emit('syncPokemon', {
+          otherPokemon: data.caughtPokemonMiniImg,
+          currentRegion: 'hoenn'
+        });
+      }
+    });
+  })
+
+  socket.on('addSinnoh', (data) => {
+    const joinedRooms = []
+    socket.rooms.forEach((room) => {
+      if (room !== socket.id) {
+        joinedRooms.push(room);
+      }
+    });
+    gameRooms.get(joinedRooms[0]).hoenn.addPokemonCaught(data.pokemonMiniImg)
+    const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
+    // Emit the message to all other sockets in the room except the current socket
+    console.log(roomSockets)
+    //const baseImgUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/"
+    roomSockets.forEach((otherSocketId) => {
+      if (otherSocketId !== socket.id) {
+        const otherSocket = io.to(otherSocketId);
+        console.log(data.caughtPokemonMiniImg)
+        otherSocket.emit('syncPokemon', {
+          otherPokemon: data.caughtPokemonMiniImg,
+          currentRegion: 'sinnoh'
+        });
+      }
+    });
+  })
   
   
 
