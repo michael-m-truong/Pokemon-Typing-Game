@@ -238,7 +238,7 @@ function changeRegion(region: RegionName) {
 function multiplayer() {
   //alert("Not working yet amber and kira, in progress -Michael")
   if (totalSockets.value === 1) return
-  socket = io('http://localhost:8080');
+  socket = io('https://pokemon-typing-game-server.onrender.com');
 
   socket.emit('joinRoom')
 

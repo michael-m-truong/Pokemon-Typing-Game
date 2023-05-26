@@ -5,7 +5,10 @@ import { GameRoomData } from "./models/game-room-data.js";
 
 const http = createServer();
 const io = new Server(http, {
-    cors: { origin: "*" }
+  cors: {
+    origin: "https://pokemon-typing-game.onrender.com", // Allow requests from any origin
+    methods: ["GET", "POST"], // Allow GET and POST requests
+  },
   });
 
 const chatMessages: string[] = []; // Collection to store chat messages
