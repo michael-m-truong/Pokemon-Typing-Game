@@ -6,7 +6,7 @@ import { GameRoomData } from "./models/game-room-data.js";
 const http = createServer();
 const io = new Server(http, {
   cors: {
-    origin: "https://pokemon-typing-game.onrender.com", // Allow requests from any origin
+    origin: "*", // Allow requests from any origin
     methods: ["GET", "POST"], // Allow GET and POST requests
   },
   });
