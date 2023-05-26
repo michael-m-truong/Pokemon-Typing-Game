@@ -321,7 +321,7 @@ io.on('connection', (socket) => {
   // });
 });
   
-http.listen(8080, "0.0.0.0", () => {
+http.listen(8080, () => {
   console.log(`Server is listening on 0.0.0.0:8080`);
 });
   
