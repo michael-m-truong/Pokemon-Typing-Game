@@ -74,6 +74,7 @@ io.on('connection', (socket) => {
       }
     });
     const totalPokemonIndexSet = gameRooms.get(joinedRooms[0]).totalPokemonIndexSet
+    console.log("----------------------")
     console.log(joinedRooms)
     console.log(`Client ${socket.id} is in rooms:`, joinedRooms[0]);
     gameRooms.get(joinedRooms[0]).totalPokemonIndexSet.add(data.caughtPokemonIndex)
@@ -103,7 +104,7 @@ io.on('connection', (socket) => {
       })
     }
     else if (data.currentRegion == 'allRegion') {
-      gameRooms.get(joinedRooms[0]).allRegion.addPokemonCaught(data.caughtPokemonMiniImg)
+      //gameRooms.get(joinedRooms[0]).allRegion.addPokemonCaught(data.caughtPokemonMiniImg)
       socket.emit('recievePokemon', {
         nextPokemonIndex: gameRooms.get(joinedRooms[0]).allRegion.getNextPokemon(totalPokemonIndexSet)
       })
@@ -155,7 +156,7 @@ io.on('connection', (socket) => {
     }
 
 
-    console.log(data.newRegion)
+    console.log(data.newRegion + "no way")
     if (data.newRegion == 'kanto') {
       socket.emit('recievePokemon', {
         nextPokemonIndex: gameRooms.get(joinedRooms[0]).kanto.getNextPokemon(totalPokemonIndexSet)
@@ -216,7 +217,7 @@ io.on('connection', (socket) => {
         const otherSocket = io.to(otherSocketId);
         console.log(data.caughtPokemonMiniImg)
         otherSocket.emit('syncPokemon', {
-          otherPokemon: data.caughtPokemonMiniImg,
+          otherPokemon: data.pokemonMiniImg,
           currentRegion: 'kanto'
         });
       }
@@ -240,7 +241,7 @@ io.on('connection', (socket) => {
         const otherSocket = io.to(otherSocketId);
         console.log(data.caughtPokemonMiniImg)
         otherSocket.emit('syncPokemon', {
-          otherPokemon: data.caughtPokemonMiniImg,
+          otherPokemon: data.pokemonMiniImg,
           currentRegion: 'johto'
         });
       }
@@ -264,7 +265,7 @@ io.on('connection', (socket) => {
         const otherSocket = io.to(otherSocketId);
         console.log(data.caughtPokemonMiniImg)
         otherSocket.emit('syncPokemon', {
-          otherPokemon: data.caughtPokemonMiniImg,
+          otherPokemon: data.pokemonMiniImg,
           currentRegion: 'hoenn'
         });
       }
@@ -288,7 +289,7 @@ io.on('connection', (socket) => {
         const otherSocket = io.to(otherSocketId);
         console.log(data.caughtPokemonMiniImg)
         otherSocket.emit('syncPokemon', {
-          otherPokemon: data.caughtPokemonMiniImg,
+          otherPokemon: data.pokemonMiniImg,
           currentRegion: 'sinnoh'
         });
       }

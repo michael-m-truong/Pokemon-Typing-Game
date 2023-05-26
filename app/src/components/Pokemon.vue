@@ -34,7 +34,7 @@ const TOTAL_JOHTO_POKEMON = {startIndex: 152, endIndex: 251}
 const TOTAL_HOENN_POKEMON = {startIndex: 252, endIndex: 386}
 const TOTAL_SINNOH_POKEMON = {startIndex: 387, endIndex: 493}
 
-let allRegions: AllRegion;
+let allRegion: AllRegion;
 let kantoRegion: Region;
 let johtoRegion: Region;
 let hoennRegion: Region;
@@ -110,6 +110,8 @@ async function handleEvent() {
       })
     }
     if (currentPokemonIndex !== undefined && (currentRegion instanceof AllRegion) && totalSockets.value != 0) {
+      console.log('pleasegodplease')
+      pokemonCaught.value.push(currentMiniPokemon.value)
       if (currentPokemonIndex >= 1 && currentPokemonIndex <= 151) {
         socket.emit('addKanto', {
           pokemonMiniImg: currentMiniPokemon.value
@@ -154,7 +156,7 @@ async function handleEvent() {
 
       loadNext()
     }
-    else {
+    else {// if (totalSockets.value != 0 && !(currentRegion instanceof AllRegion)) {
       socket.emit('caughtPokemon', {
         caughtPokemonIndex: currentPokemonIndex,
         caughtPokemonMiniImg: currentMiniPokemon.value,
@@ -188,6 +190,7 @@ async function loadNext() {
 function changeRegion(region: RegionName) {
   console.log("this better not run")
   if (!regions.hasOwnProperty(region)) {
+    console.log("here")
     return;
   }
   else if (currentRegion == regions[region]) {
@@ -252,7 +255,9 @@ function multiplayer() {
   });
 
   socket.on('syncPokemon', data => {
-    if (currentRegion.determineRegion() != data?.currentRegion) return
+    console.log(data.currentRegion)
+    if (((((currentRegion.determineRegion() != data.currentRegion) && (currentRegion.determineRegion() != 'allRegion' && data.currentRegion != 'allRegion')) || (currentRegion.determineRegion() == 'allRegion' && data.currentRegion == 'allRegion')))) return
+    console.log("PLEASEEE")
     pokemonCaught.value.push(data?.otherPokemon)
     console.log(pokemonCaught.value)
   });
@@ -265,7 +270,7 @@ function multiplayer() {
 }
 
 function restart() {
-  allRegions = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
+  allRegion = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
   kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
   johtoRegion = new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex);
   hoennRegion = new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex);
@@ -289,7 +294,7 @@ function restart() {
 }
 
 function init_multiplayer() {
-  allRegions = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
+  allRegion = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
   kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
   johtoRegion = new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex);
   hoennRegion = new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex);
@@ -313,7 +318,7 @@ function init_game() {
   let savedIndexes: any = JSON.parse(localStorage.getItem('totalPokemonIndexSet') ?? 'null');
   if (savedIndexes !== null) Region.totalPokemonIndexSet = new Set(savedIndexes)
 
-  allRegions = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
+  allRegion = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
   kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
   johtoRegion = new Region(TOTAL_JOHTO_POKEMON.startIndex, TOTAL_JOHTO_POKEMON.endIndex);
   hoennRegion = new Region(TOTAL_HOENN_POKEMON.startIndex, TOTAL_HOENN_POKEMON.endIndex);
@@ -347,7 +352,7 @@ function init_game() {
   
   currentRegion = kantoRegion
   regions = {
-    all: allRegions,
+    allRegion: allRegion,
     kanto: kantoRegion,
     johto: johtoRegion,
     hoenn: hoennRegion,
@@ -391,7 +396,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <button @click="()=>changeRegion('allRegion')" class="region all">All Regions</button>
+        <button @click="()=>changeRegion('allRegion')" class="region allRegion">All Regions</button>
         <button @click="()=>changeRegion('kanto')" class="region kanto active">Kanto</button>
         <button @click="()=>changeRegion('johto')" class="region johto">Johto</button>
         <button @click="()=>changeRegion('hoenn')" class="region hoenn">Hoenn</button>
