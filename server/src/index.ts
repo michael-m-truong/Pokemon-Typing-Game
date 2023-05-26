@@ -1,15 +1,21 @@
 import { createServer } from "http";
+import express, { Request, Response } from 'express';
 import { Server } from "socket.io";
 import { Region} from "./models/region.js"
 import { GameRoomData } from "./models/game-room-data.js";
 
-const http = createServer();
+const app = express();
+const http = createServer(app);
 const io = new Server(http, {
   cors: {
     origin: '*', // Allow requests from any origin
     methods: ["GET", "POST"], // Allow GET and POST requests
   },
   });
+
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello, world!');
+});
 
 const chatMessages: string[] = []; // Collection to store chat messages
 let connectedClients: number = 0; // Number of connected clients
