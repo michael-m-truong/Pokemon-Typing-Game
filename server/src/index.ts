@@ -6,7 +6,7 @@ import { GameRoomData } from "./models/game-room-data.js";
 const http = createServer();
 const io = new Server(http, {
   cors: {
-    origin: ["https://pokemon-typing-game.onrender.com", 'http://localhost:5173', 'http://127.0.0.1:5173'], // Allow requests from any origin
+    origin: '*', // Allow requests from any origin
     methods: ["GET", "POST"], // Allow GET and POST requests
   },
   });
@@ -315,7 +315,9 @@ io.on('connection', (socket) => {
   // });
 });
   
-http.listen(8080, () => console.log('listening on http://localhost:8080'));
+http.listen(8080, "0.0.0.0", () => {
+  console.log(`Server is listening on 0.0.0.0:8080`);
+});
   
 function getSocketsInRoom(roomName) {
   const room = io.sockets.adapter.rooms.get(roomName);
