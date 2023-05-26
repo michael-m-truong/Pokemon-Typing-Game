@@ -143,7 +143,7 @@ function changeMusic(musicUrl: any) {
   Your browser does not support the audio element.
 </audio>
 <audio ref="legendaryAudioPlayer" id="legendaryAudioPlayer">
-  <source src="noneeee" type="audio/mp3">
+  <source src="" type="audio/mp3">
   Your browser does not support the audio element.
 </audio>
 </template>
