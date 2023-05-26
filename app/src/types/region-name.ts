@@ -1,1 +1,1 @@
-export type RegionName = 'all' | 'kanto' | 'johto' | 'hoenn' | 'sinnoh';
+export type RegionName = 'allRegion' | 'kanto' | 'johto' | 'hoenn' | 'sinnoh';
