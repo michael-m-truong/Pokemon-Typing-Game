@@ -518,11 +518,11 @@ onMounted(() => {
 
       <div class="stats">
         <h2>{{ username}}'s Pokemon: {{ pokemonCaught.length }}</h2>
-        <div class="image-list" :style="{ 'max-height': !isBattling ? '150px' : '350px' }">
+        <div class="image-list" :style="{ 'max-height': isBattling ? '150px' : '300px' }">
           <img v-for="pokemon in pokemonCaught" :key="pokemon" :src="pokemon" alt="Caught Pokemon" class="caught-pokemon" style="height: 50px; width:autogd"/>
         </div>
         <h2 :style="{ marginTop:'100px' }" v-if="isBattling">{{ opponent_username }}'s Pokemon: {{ opponent_pokemonCaught.length }}</h2>
-        <div class="image-list" :style="{ 'max-height': !isBattling ? '150px' : '350px' }" v-if="isBattling">
+        <div class="image-list" :style="{ 'max-height': isBattling ? '150px' : '300px' }" v-if="isBattling">
           <img v-for="pokemon in opponent_pokemonCaught" :key="pokemon" :src="pokemon" alt="Caught Pokemon" class="caught-pokemon" style="height: 50px; width:autogd"/>
         </div>
       </div>
