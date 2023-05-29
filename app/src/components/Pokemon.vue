@@ -55,6 +55,7 @@ let isBattling = ref(false);
 let username = ref('');
 let displayingWinner = ref(false)
 let winnerOfRound = ref('')
+let tempPokemonName = ref('')
 
 async function fetchData(index?: number) {
   try {
@@ -301,9 +302,9 @@ function battle() {
   socket.on('nextBattle', data => {
     currentPokemonIndex = data?.nextPokemon
     setTimeout(() => {
-      fetchData(currentPokemonIndex)
       displayingWinner.value = false
     }, 3000);
+    fetchData(currentPokemonIndex)
     winnerOfRound.value = data.winnerOfRound
     displayingWinner.value = true
   })
@@ -358,8 +359,9 @@ function toggleEditModal() {
 }
 
 function saveUsername() {
-  const inputElement = document.getElementById('fname') as HTMLInputElement;
+  const inputElement = document.getElementById('username') as HTMLInputElement;
   username.value = inputElement.value;
+  console.log(inputElement.value)
   localStorage.setItem('username', username.value);
 }
 
@@ -370,9 +372,9 @@ function init_game() {
   let savedIndexes: any = JSON.parse(localStorage.getItem('totalPokemonIndexSet') ?? 'null');
   if (savedIndexes !== null) Region.totalPokemonIndexSet = new Set(savedIndexes)
 
-  let savedUsername = localStorage.getItem('username');
-  if (savedUsername === null) {
-    savedUsername = "guest"
+  username.value = localStorage.getItem('username') ?? ''
+  if (username.value === '') {
+    username.value = "guest"
   }
 
 
@@ -386,7 +388,7 @@ function init_game() {
     for (const img of savedPokemon) {
       const filename = img.substring(img.lastIndexOf('/') + 1);
       let num = parseInt(filename.replace('.svg', ''));
-      console.log(filename)
+      //console.log(filename)
       if (num >= 1 && num <= 151) {
         kantoRegion.addPokemonCaught(img);
       } else if (num >= 152 && num <= 251) {
@@ -495,7 +497,11 @@ onMounted(() => {
 
       <div class="stats">
         <h2>Pokemon Caught: {{ pokemonCaught.length }}</h2>
-        <div class="image-list">
+        <div class="image-list" :style="{ 'max-height': !isBattling ? '150px' : '350px' }">
+          <img v-for="pokemon in pokemonCaught" :key="pokemon" :src="pokemon" alt="Caught Pokemon" class="caught-pokemon" style="height: 50px; width:autogd"/>
+        </div>
+        <h2 :style="{ marginTop:'100px' }">Pokemon Enemy: {{ pokemonCaught.length }}</h2>
+        <div class="image-list" :style="{ 'max-height': !isBattling ? '150px' : '350px' }">
           <img v-for="pokemon in pokemonCaught" :key="pokemon" :src="pokemon" alt="Caught Pokemon" class="caught-pokemon" style="height: 50px; width:autogd"/>
         </div>
       </div>

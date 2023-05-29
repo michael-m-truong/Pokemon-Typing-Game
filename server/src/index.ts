@@ -38,6 +38,7 @@ const TOTAL_SINNOH_POKEMON = {startIndex: 387, endIndex: 493}
 
 
 io.on('connection', (socket) => {
+  console.log(io.sockets.adapter.rooms)
   console.log('a user connected');
 
   socket.on('joinRoom', () => {
@@ -384,8 +385,8 @@ io.on('connection', (socket) => {
 
   // Check if there are two connected clients
   
-  socket.on('disconnect', () => {
-    console.log('a user disconnected');
+  socket.on('disconnecting', () => {
+    console.log('a user disconnecting');
     // Remove the game room if it becomes empty
     if (connectedClients === 1) {
       connectedClients--;
@@ -394,15 +395,30 @@ io.on('connection', (socket) => {
       connectedBattleClients--;
     }
     const joinedRooms = []
-    console.log(socket.rooms)
+    //console.log(socket.rooms)
+
+    // for (let i = 0; i < socket.rooms.size; i++) {
+    //   if (socket.rooms[i] !== socket.id) {
+    //     socket.to(socket.rooms[i]).emit("user has left", socket.id);
+    //     // console.log(room)
+    //     io.of('/').in(socket.rooms[i]).disconnectSockets(true)
+    //     //delete io.sockets.adapter.rooms[socket.rooms[i]]
+    //   }
+    // }
+    // socket.leave(socket.rooms[i])
+    //console.log(io.sockets.adapter.rooms)
     socket.rooms.forEach((room) => {
       if (room !== socket.id) {
-        //socket.leave(room)
-        console.log(room)
-        io.of('/').in(room).disconnectSockets()
-        delete io.sockets.adapter.rooms[room]
+        socket.leave(room)
+        socket.to(room).emit("user has left", socket.id);
+        // console.log(room)
+        io.of('/').in(room).disconnectSockets(true)
+        //console.log("testtt" + io.sockets.adapter.rooms[room])
+        //delete io.sockets.adapter.rooms[room]  //no need auto mem mangement
+        //console.log(io.sockets.adapter.rooms)
         }
     })
+    //console.log(io.sockets.adapter.rooms)
   });
 });
   

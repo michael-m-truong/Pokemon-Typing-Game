@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps<{
   pokemonName: string;
@@ -17,9 +17,15 @@ const props = defineProps<{
 
 const tiles = ref('');
 
+onMounted(() => {
+  tiles.value = props.pokemonName;
+  typedLetters.value = '';
+});
+
 // Watch for changes in the `pokemonName` prop
 watch(() => props.pokemonName, (newPokemonName) => {
   tiles.value = newPokemonName;
+  console.log(tiles.value)
   typedLetters.value = ''; // Reset typedLetters to an empty string
 });
 
