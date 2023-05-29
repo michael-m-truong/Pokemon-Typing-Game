@@ -48,6 +48,13 @@ let totalSockets: Ref<number> = ref(0)
 let socket: Socket<DefaultEventsMap, DefaultEventsMap>;
 
 let showModal = ref(false);
+let showEditModal = ref(false);
+
+let isBattling = ref(false);
+
+let username = ref('');
+let displayingWinner = ref(false)
+let winnerOfRound = ref('')
 
 async function fetchData(index?: number) {
   try {
@@ -80,6 +87,13 @@ async function fetchData(index?: number) {
 async function handleEvent() {
   console.log(pokemonCaught)
   count.value +=1
+  if (isBattling.value) {
+    pokemonCaught.value.push(currentMiniPokemon.value)
+    socket.emit('caughtFirst', {
+        username: username.value
+    })
+    return
+  }
   try {
     //const randomPokemonId = Math.floor(Math.random() * 151) + 1; // Random number between 1 and 151
     //const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${randomPokemonId}`);
@@ -269,6 +283,32 @@ function multiplayer() {
   totalSockets.value++
 }
 
+function battle() {
+  if (totalSockets.value === 1) return
+  totalSockets.value++
+  socket = io('http://localhost:8080');
+
+  socket.emit('joinBattleRoom')
+
+  socket.on('ready', data => {
+    alert(data.msg)
+    init_multiplayer()
+    currentPokemonIndex = data?.nextPokemon
+    console.log(currentPokemonIndex)
+    fetchData(currentPokemonIndex)
+  });
+
+  socket.on('nextBattle', data => {
+    currentPokemonIndex = data?.nextPokemon
+    setTimeout(() => {
+      fetchData(currentPokemonIndex)
+      displayingWinner.value = false
+    }, 3000);
+    winnerOfRound.value = data.winnerOfRound
+    displayingWinner.value = true
+  })
+}
+
 function restart() {
   allRegion = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
   kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
@@ -311,12 +351,30 @@ function init_multiplayer() {
   nextMiniPokemon.value = '';
 }
 
+function toggleEditModal() {
+  // pokemonName.value = ""
+  showEditModal.value = !showEditModal.value
+  // pokemonName.value = temp
+}
+
+function saveUsername() {
+  const inputElement = document.getElementById('fname') as HTMLInputElement;
+  username.value = inputElement.value;
+  localStorage.setItem('username', username.value);
+}
+
 function init_game() {
   let savedPokemon: any = JSON.parse(localStorage.getItem('totalPokemonCaught') || 'null');
   if (savedPokemon !== null) Region.totalPokemonCaught = savedPokemon
 
   let savedIndexes: any = JSON.parse(localStorage.getItem('totalPokemonIndexSet') ?? 'null');
   if (savedIndexes !== null) Region.totalPokemonIndexSet = new Set(savedIndexes)
+
+  let savedUsername = localStorage.getItem('username');
+  if (savedUsername === null) {
+    savedUsername = "guest"
+  }
+
 
   allRegion = new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex);
   kantoRegion = new Region(TOTAL_KANTO_POKEMON.startIndex, TOTAL_KANTO_POKEMON.endIndex);
@@ -376,7 +434,7 @@ onMounted(() => {
         <!-- <button @click="fetchData">Fetch Pokemon Name and Image</button> -->
         <button v-if="totalSockets == 0" @click="()=> showModal = true">Multiplayer</button>
         <!-- <button v-if="totalSockets == 0" @click="()=>multiplayer()" class="">Multiplayer</button> -->
-        <button v-if="totalSockets == 1" @click="()=>{totalSockets = 0; socket.disconnect(); init_game()}" class="">Quit</button>
+        <button v-if="totalSockets == 1" @click="()=>{totalSockets = 0; socket.disconnect(); isBattling = false; init_game()}" class="">Quit</button>
 
         <!-- Modal -->
         <div class="modal-overlay" v-if="showModal">
@@ -386,7 +444,7 @@ onMounted(() => {
               <h2>Select game mode</h2>
               <br>
               <button @click="()=>{multiplayer(); showModal = false}" class="">Co-op</button>
-              <button @click="()=>{showModal = false}" class="">Battle</button>
+              <button @click="()=>{battle(); isBattling = true; showModal = false}" class="">Battle</button>
               <br>
               <br>
               <br>
@@ -396,20 +454,42 @@ onMounted(() => {
           </div>
         </div>
 
-        <button @click="()=>changeRegion('allRegion')" class="region allRegion">All Regions</button>
-        <button @click="()=>changeRegion('kanto')" class="region kanto active">Kanto</button>
-        <button @click="()=>changeRegion('johto')" class="region johto">Johto</button>
-        <button @click="()=>changeRegion('hoenn')" class="region hoenn">Hoenn</button>
-        <button @click="()=>changeRegion('sinnoh')" class="region sinnoh">Sinnoh</button>
+        <div class="modal-overlay" v-if="showEditModal">
+          <div class="modal">
+            <div class="modal-content">
+              <!-- Modal content goes here -->
+              <h2>Username</h2>
+              <br>
+              <input type="text" id="username" name="fname">
+              <br>
+              <br>
+              <br>
+              <!-- Close button -->
+              <button @click="toggleEditModal">Cancel</button>
+              <button @click="()=>{toggleEditModal(); saveUsername()}">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <button @click="()=>changeRegion('allRegion')" class="region allRegion" v-if="!isBattling">All Regions</button>
+        <button @click="()=>changeRegion('kanto')" class="region kanto active" v-if="!isBattling">Kanto</button>
+        <button @click="()=>changeRegion('johto')" class="region johto" v-if="!isBattling">Johto</button>
+        <button @click="()=>changeRegion('hoenn')" class="region hoenn" v-if="!isBattling">Hoenn</button>
+        <button @click="()=>changeRegion('sinnoh')" class="region sinnoh" v-if="!isBattling">Sinnoh</button>
+        <button @click="toggleEditModal" class="">Edit username</button>
         <button @click="()=>restart()" class="">Restart Game</button>
         <MusicPlayer :pokemonName="pokemonName"/>
       </div>
 
       <div class="centered-content">
-        <div class="image-container">
+        <div class="image-container" v-if="!displayingWinner">
           <img :src="pokemonImageUrl" alt="Pokemon" v-if="pokemonImageUrl" style="height: 50vh; width: auto; max-width: 380px; max-height: 373px;"/>
           <h2>{{ pokemonName }}</h2>
-          <Keyboard :onCustomEvent="handleEvent" :pokemonName="pokemonName"/>
+          <Keyboard :onCustomEvent="handleEvent" :pokemonName="pokemonName" :typingAllowed="!showEditModal"/>
+        </div>
+
+        <div v-if="displayingWinner">
+          <h1>{{winnerOfRound}} is the winner of the round!</h1>
         </div>
       </div>
 

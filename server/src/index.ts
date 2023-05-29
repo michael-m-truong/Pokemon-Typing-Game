@@ -3,6 +3,9 @@ import express, { Request, Response } from 'express';
 import { Server } from "socket.io";
 import { Region} from "./models/region.js"
 import { GameRoomData } from "./models/game-room-data.js";
+import { BattleRoomData } from "./models/battle-room.js";
+import { AllRegion } from "./models/all-region.js";
+import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 const http = createServer(app);
@@ -19,7 +22,13 @@ app.get('/', (req: Request, res: Response) => {
 
 const chatMessages: string[] = []; // Collection to store chat messages
 let connectedClients: number = 0; // Number of connected clients
+let connectedBattleClients: number = 0; // Number of connected clients
 let gameRooms: Map<string, GameRoomData> = new Map(); // Array to store game room names
+let battleRooms: Map<string, BattleRoomData> = new Map(); // Array to store game room names
+
+let emptyGameRoom: string;
+let emptyBattleRoom: string;
+
 
 const TOTAL_POKEMON = {startIndex: 1, endIndex: 493}
 const TOTAL_KANTO_POKEMON = {startIndex: 1, endIndex: 151}
@@ -36,7 +45,9 @@ io.on('connection', (socket) => {
 
     if (connectedClients === 1) {
       // Create a new game room and join it
-      let gameRoom = `GameRoom${gameRooms.size + 1}`;
+      let uuid = uuidv4()
+      let gameRoom = `GameRoom${uuid}`;
+      emptyGameRoom = gameRoom
       gameRooms.set(gameRoom, {
         roomId: gameRoom,
         gameStatus: true,
@@ -54,7 +65,7 @@ io.on('connection', (socket) => {
       console.log(`Client ${socket.id} joined ${gameRoom}`);
     } else if (connectedClients === 2) {
       // Join the existing game room
-      let gameRoom = `GameRoom${gameRooms.size}`;
+      let gameRoom = emptyGameRoom
       socket.join(gameRoom);
       console.log(`Client ${socket.id} joined ${gameRoom}`);
       connectedClients = 0;
@@ -74,6 +85,70 @@ io.on('connection', (socket) => {
     }
   
   });
+
+  socket.on('joinBattleRoom', () => {
+    connectedBattleClients++;
+
+    if (connectedBattleClients === 1) {
+      // Create a new game room and join it
+      console.log("hereeeee")
+      let uuid = uuidv4()
+      let gameRoom = `BattleRoom${uuid}`;
+      emptyBattleRoom = gameRoom
+      battleRooms.set(gameRoom, {
+        roomId: gameRoom,
+        gameStatus: true,
+        allRegion: new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex),
+      })
+
+      // Join the game room
+      socket.join(gameRoom);
+      console.log(`Client ${socket.id} joined ${gameRoom}`);
+    } else if (connectedBattleClients === 2) {
+      // Join the existing game room
+      let gameRoom = emptyBattleRoom
+      console.log(emptyBattleRoom)
+      socket.join(gameRoom);
+      console.log(`Client ${socket.id} joined ${gameRoom}`);
+      connectedBattleClients = 0;
+
+      const roomSockets = io.sockets.adapter.rooms.get(gameRoom);
+      if (roomSockets) {
+        roomSockets.forEach((clientId) => {
+          const socket = io.sockets.sockets.get(clientId);
+          const message = `Hello, client ${clientId}!`;
+
+          socket.emit('ready', { 
+            msg: message, 
+            nextPokemon: battleRooms.get(gameRoom).allRegion.getNextPokemon()
+          });
+        });
+      }
+    }
+  });
+
+  socket.on('caughtFirst', (data) => {
+    console.log("caught first!")
+    const joinedRooms = []
+    socket.rooms.forEach((room) => {
+      if (room !== socket.id) {
+        joinedRooms.push(room);
+      }
+    });
+    const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
+    battleRooms.get(joinedRooms[0]).allRegion.removeLastPokemon()
+    roomSockets.forEach((otherSocketId) => {
+        const otherSocket = io.to(otherSocketId);
+        otherSocket.emit('roundWinner', {
+          msg: `${data.username} won the round!`
+        })
+        otherSocket.emit('nextBattle', { 
+          winnerOfRound: data.username,
+          nextPokemon: battleRooms.get(joinedRooms[0]).allRegion.getNextPokemon()
+        });
+    });
+    
+  })
 
   socket.on('caughtPokemon', (data) => {
     const joinedRooms = []
@@ -309,16 +384,26 @@ io.on('connection', (socket) => {
 
   // Check if there are two connected clients
   
-  // socket.on('disconnect', () => {
-  //   console.log('a user disconnected');
-  //   connectedClients--;
-
-  //   // Remove the game room if it becomes empty
-  //   if (connectedClients === 0) {
-  //     const gameRoom = gameRooms.pop();
-  //     console.log(`Game room ${gameRoom} removed`);
-  //   }
-  // });
+  socket.on('disconnect', () => {
+    console.log('a user disconnected');
+    // Remove the game room if it becomes empty
+    if (connectedClients === 1) {
+      connectedClients--;
+    }
+    if (connectedBattleClients === 1) {
+      connectedBattleClients--;
+    }
+    const joinedRooms = []
+    console.log(socket.rooms)
+    socket.rooms.forEach((room) => {
+      if (room !== socket.id) {
+        //socket.leave(room)
+        console.log(room)
+        io.of('/').in(room).disconnectSockets()
+        delete io.sockets.adapter.rooms[room]
+        }
+    })
+  });
 });
   
 http.listen(8080, () => {
