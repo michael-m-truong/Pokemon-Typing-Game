@@ -8,6 +8,7 @@ export interface BattleRoomData {
     allRegion: AllRegion;
     player1: string
     player2: string
+    pending: boolean
     // totalPokemonCaught: string[];
     // totalPokemonIndexSet: Set<number>;
   }
