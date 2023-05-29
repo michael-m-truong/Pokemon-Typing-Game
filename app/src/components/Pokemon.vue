@@ -500,7 +500,7 @@ onMounted(() => {
         <button @click="()=>changeRegion('hoenn')" class="region hoenn" v-if="!isBattling">Hoenn</button>
         <button @click="()=>changeRegion('sinnoh')" class="region sinnoh" v-if="!isBattling">Sinnoh</button>
         <button @click="toggleEditModal" class="" v-if="!isBattling">Edit username</button>
-        <button @click="()=>restart()" class="" v-if="totalSockets > 0">Restart Game</button>
+        <button @click="()=>restart()" class="" v-if="totalSockets === 0">Restart Game</button>
         <MusicPlayer :pokemonName="pokemonName"/>
       </div>
 
