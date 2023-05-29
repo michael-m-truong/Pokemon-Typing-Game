@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios';
-import { Ref, onMounted, ref, toValue } from 'vue';
+import { Ref, onMounted, ref } from 'vue';
 import Keyboard from './Keyboard.vue';
 import { Region } from '../models/region'
 import { Regions } from '../types/regions';
