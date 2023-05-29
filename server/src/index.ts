@@ -101,7 +101,8 @@ io.on('connection', (socket) => {
         gameStatus: true,
         allRegion: new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex),
         player1: data.username,
-        player2: null
+        player2: null,
+        pending: false
       })
 
       // Join the game room
@@ -147,6 +148,15 @@ io.on('connection', (socket) => {
     });
     const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
     battleRooms.get(joinedRooms[0]).allRegion.removeLastPokemon()
+
+    if (battleRooms.get(joinedRooms[0]).pending === true) {
+      battleRooms.get(joinedRooms[0]).pending = false
+      return
+    }
+    else {
+      battleRooms.get(joinedRooms[0]).pending = true
+    }
+
     roomSockets.forEach((otherSocketId) => {
         const otherSocket = io.to(otherSocketId);
         otherSocket.emit('roundWinner', {
@@ -159,6 +169,9 @@ io.on('connection', (socket) => {
           playerNum: data.winner
         });
     });
+    setTimeout(() => {
+      battleRooms.get(joinedRooms[0]).pending = false
+    }, 2000);
     
   })
 

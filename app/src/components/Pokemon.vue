@@ -93,7 +93,7 @@ async function handleEvent() {
   console.log(pokemonCaught)
   count.value +=1
   if (isBattling.value) {
-    pokemonCaught.value.push(currentMiniPokemon.value)
+    //pokemonCaught.value.push(currentMiniPokemon.value)
     let playerNum = isPlayer1.value ? 'player1' : 'player2' 
     console.log(playerNum)
     socket.emit('caughtFirst', {
@@ -327,7 +327,9 @@ function battle() {
     displayingWinner.value = true
     console.log(data.playerNum)
     if (data.playerNum !== 'player1' && isPlayer1.value) opponent_pokemonCaught.value.push(data.pokemonCaught)
-    if (data.playerNum === 'player1' && !isPlayer1.value) opponent_pokemonCaught.value.push(data.pokemonCaught)
+    else if (data.playerNum === 'player1' && !isPlayer1.value) opponent_pokemonCaught.value.push(data.pokemonCaught)
+    else if (data.playerNum === 'player1' && isPlayer1.value) pokemonCaught.value.push(data.pokemonCaught)
+    else if (data.playerNum !== 'player1' && !isPlayer1.value) pokemonCaught.value.push(data.pokemonCaught)
   })
 }
 
@@ -366,6 +368,8 @@ function init_multiplayer() {
   pokemonImageUrl.value = '';
   count.value = 0;
   pokemonCaught.value = [];
+  opponent_pokemonCaught.value = []
+  opponent_username.value = 'Guest'
   currentMiniPokemon.value = '';
   nextPokemonIndex = undefined;
   nextPokemonName.value = '';
