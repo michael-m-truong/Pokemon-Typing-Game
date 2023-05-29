@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios';
-import { Ref, onMounted, ref } from 'vue';
+import { Ref, onMounted, ref, toValue } from 'vue';
 import Keyboard from './Keyboard.vue';
 import { Region } from '../models/region'
 import { Regions } from '../types/regions';
@@ -55,7 +55,11 @@ let isBattling = ref(false);
 let username = ref('');
 let displayingWinner = ref(false)
 let winnerOfRound = ref('')
-let tempPokemonName = ref('')
+let opponent_username = ref('Opponent')
+let opponent_pokemonCaught = ref<string[]>([]);
+
+let isPlayer1 = ref(false)
+
 
 async function fetchData(index?: number) {
   try {
@@ -90,8 +94,12 @@ async function handleEvent() {
   count.value +=1
   if (isBattling.value) {
     pokemonCaught.value.push(currentMiniPokemon.value)
+    let playerNum = isPlayer1.value ? 'player1' : 'player2' 
+    console.log(playerNum)
     socket.emit('caughtFirst', {
-        username: username.value
+        username: username.value,
+        pokemonCaught: currentMiniPokemon.value,
+        winner: playerNum
     })
     return
   }
@@ -287,9 +295,12 @@ function multiplayer() {
 function battle() {
   if (totalSockets.value === 1) return
   totalSockets.value++
-  socket = io('http://localhost:8080');
-
-  socket.emit('joinBattleRoom')
+  isPlayer1.value = false
+  socket = io('https://pokemon-typing-game-server.onrender.com');
+  console.log(username.value)
+  socket.emit('joinBattleRoom', {
+    username: username.value
+  })
 
   socket.on('ready', data => {
     alert(data.msg)
@@ -297,7 +308,14 @@ function battle() {
     currentPokemonIndex = data?.nextPokemon
     console.log(currentPokemonIndex)
     fetchData(currentPokemonIndex)
+    opponent_username.value = data.player1 !== username.value ? data.player1 : data.player2
   });
+
+  socket.on('player1', () => {
+    console.log("IS PLAYER1")
+    isPlayer1.value = true
+    pokemonCaught.value = [];
+  })
 
   socket.on('nextBattle', data => {
     currentPokemonIndex = data?.nextPokemon
@@ -307,6 +325,9 @@ function battle() {
     fetchData(currentPokemonIndex)
     winnerOfRound.value = data.winnerOfRound
     displayingWinner.value = true
+    console.log(data.playerNum)
+    if (data.playerNum !== 'player1' && isPlayer1.value) opponent_pokemonCaught.value.push(data.pokemonCaught)
+    if (data.playerNum === 'player1' && !isPlayer1.value) opponent_pokemonCaught.value.push(data.pokemonCaught)
   })
 }
 
@@ -478,8 +499,8 @@ onMounted(() => {
         <button @click="()=>changeRegion('johto')" class="region johto" v-if="!isBattling">Johto</button>
         <button @click="()=>changeRegion('hoenn')" class="region hoenn" v-if="!isBattling">Hoenn</button>
         <button @click="()=>changeRegion('sinnoh')" class="region sinnoh" v-if="!isBattling">Sinnoh</button>
-        <button @click="toggleEditModal" class="">Edit username</button>
-        <button @click="()=>restart()" class="">Restart Game</button>
+        <button @click="toggleEditModal" class="" v-if="!isBattling">Edit username</button>
+        <button @click="()=>restart()" class="" v-if="totalSockets > 0">Restart Game</button>
         <MusicPlayer :pokemonName="pokemonName"/>
       </div>
 
@@ -496,13 +517,13 @@ onMounted(() => {
       </div>
 
       <div class="stats">
-        <h2>Pokemon Caught: {{ pokemonCaught.length }}</h2>
+        <h2>{{ username}}'s Pokemon: {{ pokemonCaught.length }}</h2>
         <div class="image-list" :style="{ 'max-height': !isBattling ? '150px' : '350px' }">
           <img v-for="pokemon in pokemonCaught" :key="pokemon" :src="pokemon" alt="Caught Pokemon" class="caught-pokemon" style="height: 50px; width:autogd"/>
         </div>
-        <h2 :style="{ marginTop:'100px' }">Pokemon Enemy: {{ pokemonCaught.length }}</h2>
-        <div class="image-list" :style="{ 'max-height': !isBattling ? '150px' : '350px' }">
-          <img v-for="pokemon in pokemonCaught" :key="pokemon" :src="pokemon" alt="Caught Pokemon" class="caught-pokemon" style="height: 50px; width:autogd"/>
+        <h2 :style="{ marginTop:'100px' }" v-if="isBattling">{{ opponent_username }}'s Pokemon: {{ opponent_pokemonCaught.length }}</h2>
+        <div class="image-list" :style="{ 'max-height': !isBattling ? '150px' : '350px' }" v-if="isBattling">
+          <img v-for="pokemon in opponent_pokemonCaught" :key="pokemon" :src="pokemon" alt="Caught Pokemon" class="caught-pokemon" style="height: 50px; width:autogd"/>
         </div>
       </div>
 

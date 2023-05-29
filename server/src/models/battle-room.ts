@@ -6,6 +6,8 @@ export interface BattleRoomData {
     //players: number;
     gameStatus: boolean;
     allRegion: AllRegion;
+    player1: string
+    player2: string
     // totalPokemonCaught: string[];
     // totalPokemonIndexSet: Set<number>;
   }

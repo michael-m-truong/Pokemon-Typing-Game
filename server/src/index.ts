@@ -87,9 +87,9 @@ io.on('connection', (socket) => {
   
   });
 
-  socket.on('joinBattleRoom', () => {
+  socket.on('joinBattleRoom', (data) => {
     connectedBattleClients++;
-
+    console.log(data)
     if (connectedBattleClients === 1) {
       // Create a new game room and join it
       console.log("hereeeee")
@@ -100,11 +100,16 @@ io.on('connection', (socket) => {
         roomId: gameRoom,
         gameStatus: true,
         allRegion: new AllRegion(TOTAL_POKEMON.startIndex, TOTAL_POKEMON.endIndex),
+        player1: data.username,
+        player2: null
       })
 
       // Join the game room
       socket.join(gameRoom);
       console.log(`Client ${socket.id} joined ${gameRoom}`);
+
+      socket.emit('player1', {});
+
     } else if (connectedBattleClients === 2) {
       // Join the existing game room
       let gameRoom = emptyBattleRoom
@@ -112,6 +117,8 @@ io.on('connection', (socket) => {
       socket.join(gameRoom);
       console.log(`Client ${socket.id} joined ${gameRoom}`);
       connectedBattleClients = 0;
+
+      battleRooms.get(gameRoom).player2 = data.username
 
       const roomSockets = io.sockets.adapter.rooms.get(gameRoom);
       if (roomSockets) {
@@ -121,7 +128,9 @@ io.on('connection', (socket) => {
 
           socket.emit('ready', { 
             msg: message, 
-            nextPokemon: battleRooms.get(gameRoom).allRegion.getNextPokemon()
+            nextPokemon: battleRooms.get(gameRoom).allRegion.getNextPokemon(),
+            player1: battleRooms.get(gameRoom).player1,
+            player2: battleRooms.get(gameRoom).player2
           });
         });
       }
@@ -145,7 +154,9 @@ io.on('connection', (socket) => {
         })
         otherSocket.emit('nextBattle', { 
           winnerOfRound: data.username,
-          nextPokemon: battleRooms.get(joinedRooms[0]).allRegion.getNextPokemon()
+          nextPokemon: battleRooms.get(joinedRooms[0]).allRegion.getNextPokemon(),
+          pokemonCaught: data.pokemonCaught,
+          playerNum: data.winner
         });
     });
     
