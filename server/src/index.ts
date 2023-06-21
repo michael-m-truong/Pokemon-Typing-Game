@@ -316,7 +316,7 @@ io.on('connection', (socket) => {
         joinedRooms.push(room);
       }
     });
-    gameRooms.get(joinedRooms[0]).hoenn.addPokemonCaught(data.pokemonMiniImg)
+    gameRooms.get(joinedRooms[0]).kanto.addPokemonCaught(data.pokemonMiniImg)
     const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
     // Emit the message to all other sockets in the room except the current socket
     console.log(roomSockets)
@@ -340,7 +340,7 @@ io.on('connection', (socket) => {
         joinedRooms.push(room);
       }
     });
-    gameRooms.get(joinedRooms[0]).hoenn.addPokemonCaught(data.pokemonMiniImg)
+    gameRooms.get(joinedRooms[0]).johto.addPokemonCaught(data.pokemonMiniImg)
     const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
     // Emit the message to all other sockets in the room except the current socket
     console.log(roomSockets)
@@ -388,7 +388,7 @@ io.on('connection', (socket) => {
         joinedRooms.push(room);
       }
     });
-    gameRooms.get(joinedRooms[0]).hoenn.addPokemonCaught(data.pokemonMiniImg)
+    gameRooms.get(joinedRooms[0]).sinnoh.addPokemonCaught(data.pokemonMiniImg)
     const roomSockets: string[] = getSocketsInRoom(joinedRooms[0])
     // Emit the message to all other sockets in the room except the current socket
     console.log(roomSockets)
